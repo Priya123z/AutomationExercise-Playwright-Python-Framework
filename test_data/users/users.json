@@ -1,0 +1,42 @@
+[
+    {
+        "title": "Mrs",
+        "email": "danielbrown@example.org",
+        "password": "tJ6SzQ4A)t",
+        "date_of_birth": "12",
+        "months_of_birth": "1",
+        "years_of_birth": "1984",
+        "newsletter": true,
+        "special_offers": false,
+        "first_name": "Cole",
+        "last_name": "Rivera",
+        "company": "Weber-Ball",
+        "address_one": "186 Franklin Valleys",
+        "address_two": "Apt. 244",
+        "country": "Australia",
+        "state": "Nevada",
+        "city": "Port Benjamin",
+        "zipcode": "55959",
+        "mobile_number": "429.231.4557x79747"
+    },
+    {
+        "title": "Mr",
+        "email": "tracy24@example.org",
+        "password": "wqRXj$g*+9",
+        "date_of_birth": "9",
+        "months_of_birth": "10",
+        "years_of_birth": "1987",
+        "newsletter": true,
+        "special_offers": false,
+        "first_name": "Justin",
+        "last_name": "Walker",
+        "company": "Allison, Torres and Bennett",
+        "address_one": "07486 Gary Brook",
+        "address_two": "Suite 724",
+        "country": "Israel",
+        "state": "Indiana",
+        "city": "Emilyside",
+        "zipcode": "41706",
+        "mobile_number": "(789)229-2682x251"
+    }
+]

@@ -3,8 +3,8 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 from utils.artifact_manager import artifact
-from utils.artifacts.authentication_manager import auth
-from utils.browser_factory import BrowserFactory
+from utils.authentication.authentication_manager import auth
+from utils.factories.browser_factory import BrowserFactory
 from utils.file_utils import FileUtils
 from utils.logger import logger
 from utils.screenshot import Screenshot
@@ -14,7 +14,7 @@ from utils.config_manager import config
 
 @pytest.fixture(scope="session")
 def browser(playwright):
-    auth.clear_all_storage_states()
+    # auth.clear_all_storage_states()
     browser = BrowserFactory.create_browser(playwright=playwright, config=config)
     yield browser
     logger.info("Closing Browser")
@@ -48,9 +48,11 @@ def authenticated_context(browser, request):
 
     logger.info("Creating Authenticated Browser Context")
 
-    storage_state = auth.get_storage_state(browser=browser,role="admin")
+    storage_state = auth.get_storage_state(browser=browser,role="user1")
 
     context = browser.new_context(storage_state=storage_state,record_video_dir=artifact.videos_dir)
+
+    #context = browser.new_context(record_video_dir = artifact.videos_dir)
 
     context.tracing.start(screenshots=True,snapshots=True)
 

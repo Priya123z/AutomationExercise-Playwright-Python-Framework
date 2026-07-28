@@ -40,6 +40,15 @@ class BasePage:
             description= description
         )
 
+    def select_option(self,locator:Locator,value:str,description:str,):
+        self.wait_for_visibility(locator,description)
+        return self._execute_action(
+            action=lambda:locator.select_option(value=value),
+            operation="Select Option",
+            locator=locator,
+            description= description
+
+        )
     def get_text(self, locator:Locator,description:str):
         self.wait_for_visibility(locator,description)
 
