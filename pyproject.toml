@@ -1,0 +1,16 @@
+[project]
+name = "orangehrm-playwright-python"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "components>=0.0.1a0",
+    "faker>=40.36.0",
+    "file-path>=0.3.1",
+    "loguru>=0.7.3",
+    "openpyxl>=3.1.5",
+    "page>=0.3",
+    "playwright>=1.61.0",
+    "pytest>=9.1.1",
+    "pytest-html>=4.2.0",
+    "python-dotenv>=1.2.2",
+]

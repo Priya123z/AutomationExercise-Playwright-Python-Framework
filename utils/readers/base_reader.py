@@ -9,19 +9,10 @@ class BaseReader(ABC):
     """
 
     @abstractmethod
-    def validate(
-        self,
-        filepath: Path,
-        **kwargs: Any
-    ) -> None:
+    def validate(self,filepath: Path,**kwargs: Any) -> None:
         """Validate the data source."""
         ...
-
     @abstractmethod
-    def read(
-        self,
-        filepath: Path,
-        **kwargs: Any
-    ) -> list[dict]:
+    def read(self,filepath: Path,**kwargs: Any) -> list[dict]:
         """Read the data source and return standardized data."""
         ...

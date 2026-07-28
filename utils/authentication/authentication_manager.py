@@ -1,10 +1,8 @@
-from pages.dashboard_page import DashboardPage
-from pages.login_page import LoginPage
 from pathlib import Path
 
 from utils.config_manager import config
 from utils.credentials_manager import  credential_manager
-
+from flows.login_flow import LoginFlow
 
 class AuthManager:
     _instance = None
@@ -46,21 +44,15 @@ class AuthManager:
         context = browser.new_context()
         try:
             page = context.new_page()
-
             page.goto(config.base_url)
-
-            login_page = LoginPage(page)
+            login_page = LoginFlow(page)
 
             credentials = credential_manager.get_credentials(role)
-
             login_page.login(credentials.username, credentials.password)
-
-            DashboardPage(page).is_loaded()
 
             storage_state = self._storage_state_path(role)
 
             context.storage_state(path=storage_state)
-
             return storage_state
         finally:
             context.close()
@@ -88,7 +80,7 @@ class AuthManager:
         """
 
         if self._storage_state_exists(role):
-            self._storage_state_path(role).unlink()
+            self._storage_state_path(role)
 
         return self._create_storage_state(browser, role)
 
