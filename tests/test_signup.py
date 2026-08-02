@@ -10,13 +10,17 @@ def test_signup(page):
     home = HomePage(page)
 
     signup_login = home.navbar.open_signup_login()
+    signup_login.is_loaded()
 
     signup_page = signup_login.start_signup(user)
+    signup_page.is_loaded()
 
     account_created = signup_page.create_account(user)
+    account_created.is_loaded()
 
     home = account_created.continue_to_home()
 
+    assert home.user_logged_in()
     home.navbar.logout()
 
 

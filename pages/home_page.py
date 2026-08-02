@@ -13,6 +13,8 @@ class HomePage(BasePage):
         self._home_banner = page.locator("#slider")
         self._featured_products = page.get_by_role("heading",name="Features Items")
         self._subscription = page.get_by_role("heading",name="Subscription")
+        self._logged_user = page.locator("a").filter(has_text="Logged in as")
+
 
     def is_loaded(self) -> None:
         self.wait_for_visibility(self._home_banner,"Home Banner")
@@ -33,3 +35,7 @@ class HomePage(BasePage):
         self._verify_home_banner()
         self._verify_featured_products()
         self._verify_subscription()
+
+    def user_logged_in(self)->bool:
+        return self.is_visible(self._logged_user, "Logged in")
+
