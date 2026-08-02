@@ -1,6 +1,5 @@
 from models.user import User
 from pages.base_page import BasePage
-from pages.home_page import HomePage
 
 
 class SignUpLoginPage(BasePage):
@@ -23,7 +22,7 @@ class SignUpLoginPage(BasePage):
         self._login_button = page.locator("[data-qa='login-button']")
 
 
-    def is_loaded(self):
+    def is_loaded(self)->None:
         self.wait_for_visibility(self._login_heading,"Login Heading")
         self.wait_for_visibility(self._signup_heading,"Signup Heading")
 
@@ -41,6 +40,7 @@ class SignUpLoginPage(BasePage):
         self.click(self._signup_button,"Click on Signup")
 
     def login(self,email: str, password: str)->HomePage:
+        from pages.home_page import HomePage
 
         self._fill_login_email(email)
         self._fill_login_password(password)

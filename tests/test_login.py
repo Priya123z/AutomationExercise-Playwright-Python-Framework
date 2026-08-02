@@ -4,8 +4,6 @@ import pytest
 
 from pages.home_page import HomePage
 from utils.test_data import TestData
-from utils.factories.reader_factory import ReaderFactory
-
 
 filepath = Path(__file__).parent.parent.resolve()
 
