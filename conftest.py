@@ -12,6 +12,25 @@ from utils.config_manager import config
 
 
 
+
+AD_DOMAINS = [
+    "doubleclick.net",
+    "googlesyndication.com",
+    "googleadservices.com",
+    "googleads.g.doubleclick.net",
+    "adservice.google.com",
+    "pagead2.googlesyndication.com",
+]
+
+def block_ads(route):
+    url = route.request.url.lower()
+
+    if any(domain in url for domain in AD_DOMAINS):
+        print(f"BLOCKED AD REQUEST: {url}")
+        route.abort()
+    else:
+        route.continue_()
+
 @pytest.fixture(scope="session")
 def browser(playwright):
     # auth.clear_all_storage_states()
@@ -32,6 +51,9 @@ def playwright():
 def context(browser,request):
     logger.info("Creating Browser Context with tracing and video recording enabled")
     browser_context = browser.new_context(record_video_dir = artifact.videos_dir)
+
+    browser_context.route("**/*",block_ads)
+
     browser_context.tracing.start(screenshots=True, snapshots=True)
     yield browser_context
     logger.info("Closing Browser Context")
@@ -52,7 +74,7 @@ def authenticated_context(browser, request):
 
     context = browser.new_context(storage_state=storage_state,record_video_dir=artifact.videos_dir)
 
-    #context = browser.new_context(record_video_dir = artifact.videos_dir)
+    context.route("**/*",block_ads)
 
     context.tracing.start(screenshots=True,snapshots=True)
 
@@ -65,6 +87,9 @@ def authenticated_context(browser, request):
     context.tracing.stop(path=artifact.traces_dir / f"{test_name}.zip")
 
     context.close()
+
+
+
 
 @pytest.fixture
 def authenticated_page(authenticated_context):

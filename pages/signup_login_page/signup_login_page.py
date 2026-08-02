@@ -1,6 +1,6 @@
 from models.user import User
 from pages.base_page import BasePage
-from pages.signup_login_page.logged_in_page import LoggedInPage
+from pages.home_page import HomePage
 
 
 class SignUpLoginPage(BasePage):
@@ -40,14 +40,14 @@ class SignUpLoginPage(BasePage):
     def _click_signup_button(self):
         self.click(self._signup_button,"Click on Signup")
 
-    def login(self,email: str, password: str)->LoggedInPage:
+    def login(self,email: str, password: str)->HomePage:
 
         self._fill_login_email(email)
         self._fill_login_password(password)
         self._click_login_button()
-        logged_in_page = LoggedInPage(self.page)
-        logged_in_page.is_loaded()
-        return logged_in_page
+        home = HomePage(self.page)
+        home.is_loaded()
+        return home
 
     def start_signup(self,user:User):
         from pages.signup_login_page.signup_page import SignupPage
