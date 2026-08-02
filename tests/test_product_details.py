@@ -7,11 +7,9 @@ def test_product_details(page):
 
     products = home.navbar.open_product()
 
-    product_details = products.open_product()
+    product_details = products.open_product("Blue Top")
 
     product_details.is_loaded()
-
-    product = product_details.get_product()
 
     expected = Product(
         name="Blue Top",
@@ -22,6 +20,4 @@ def test_product_details(page):
         brand="Brand: Polo",
     )
 
-    actual = product_details.get_product()
-
-    assert actual == expected
+    assert product_details.get_product() == expected
