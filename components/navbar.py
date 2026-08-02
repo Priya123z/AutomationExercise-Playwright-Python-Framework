@@ -76,6 +76,7 @@ class Navbar(BasePage):
         video_tutorials_page = VideoTutorialsPage(self.page)
         video_tutorials_page.is_loaded()
         return video_tutorials_page
+    
     def logout(self):
         from pages.signup_login_page.signup_login_page import SignUpLoginPage
         self.click(self._logout_link, "Redirecting to HomePage")

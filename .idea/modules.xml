@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/automationexercise-playwright-python.iml" filepath="$PROJECT_DIR$/.idea/automationexercise-playwright-python.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/orangehrm-playwright-python.iml" filepath="$PROJECT_DIR$/.idea/orangehrm-playwright-python.iml" />
     </modules>
   </component>
 </project>
