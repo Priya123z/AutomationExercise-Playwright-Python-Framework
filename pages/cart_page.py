@@ -1,3 +1,4 @@
+from __future__ import annotations
 from playwright.sync_api import Locator, expect
 from components.checkout_login_modal import CheckoutModal
 from models.cart_product import CartProduct

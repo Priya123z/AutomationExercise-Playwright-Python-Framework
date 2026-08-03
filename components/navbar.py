@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pages.api_test_case_page import APITestPage
 from pages.contact_us_page import ContactUsPage
 from pages.base_page import BasePage

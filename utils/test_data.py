@@ -1,19 +1,34 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 from utils.factories.reader_factory import ReaderFactory
+
+T = TypeVar("T")
+
 
 class TestData:
 
     @staticmethod
-    def load(filepath: Path,filters: dict | None = None,**kwargs: Any) -> list[dict]:
+    def load(
+        filepath: Path,
+        model: type[T] | None = None,
+        filters: dict | None = None,
+        **kwargs: Any,
+    ) -> list[T] | list[dict]:
+
         reader = ReaderFactory.get_reader(filepath)
         data = reader.read(filepath, **kwargs)
 
-        if filters is None:
-            return data
+        if filters:
+            data = [
+                row
+                for row in data
+                if all(row.get(key) == value for key, value in filters.items())
+            ]
 
-        return [row for
-                row in data
-                if all(row.get(key) == value
-                       for key, value in filters.items())]
+        if model:
+            return [model(**row) for row in data]
+
+        return data

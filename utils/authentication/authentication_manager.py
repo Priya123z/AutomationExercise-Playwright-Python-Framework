@@ -1,5 +1,5 @@
+from __future__ import annotations
 from pathlib import Path
-
 from utils.config_manager import config
 from utils.credentials_manager import  credential_manager
 from flows.login_flow import LoginFlow

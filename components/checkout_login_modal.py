@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pages.base_page import BasePage
 from pages.signup_login_page.signup_login_page import SignUpLoginPage
 

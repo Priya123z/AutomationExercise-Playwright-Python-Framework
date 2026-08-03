@@ -1,6 +1,6 @@
+from __future__ import annotations
 from models.user import User
 from pages.base_page import BasePage
-
 
 class SignUpLoginPage(BasePage):
     def __init__(self, page):
@@ -40,6 +40,7 @@ class SignUpLoginPage(BasePage):
         self.click(self._signup_button,"Click on Signup")
 
     def login(self,email: str, password: str)->HomePage:
+
         from pages.home_page import HomePage
 
         self._fill_login_email(email)

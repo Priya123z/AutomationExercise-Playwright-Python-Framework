@@ -1,16 +1,24 @@
+from __future__ import annotations
 from pathlib import Path
-
 import pytest
-
-from components.checkout_login_modal import CheckoutModal
+from models.payment_detail import PaymentDetails
 from pages.home_page import HomePage
 from utils.test_data import TestData
+from models.user import User
 
+filepath  = Path(__file__).parent.parent.resolve()
 
+users = TestData.load(filepath /"test_data/users/users.json", model=User)
+# users -> list[User]
+
+payments = TestData.load(filepath/"test_data"/"payments"/"payment.json", model=PaymentDetails)
+# payments -> list[PaymentDetails]
 filepath = Path(__file__).parent.parent.resolve()
 
-@pytest.mark.parametrize("user",TestData.load(filepath/"test_data"/"users"/"users.json"))
-def test_register_while_checkout(page,user):
+
+@pytest.mark.parametrize("user", users)
+@pytest.mark.parametrize("payment_details", payments)
+def test_register_while_checkout(page,user,payment_details):
     home = HomePage(page)
 
     products = home.navbar.open_product()
@@ -23,7 +31,7 @@ def test_register_while_checkout(page,user):
 
     login = checkout_modal.register_login()
 
-    login.login(user["email"],user["password"])
+    login.login(user.email, user.password)
 
     assert home.user_logged_in()
 
@@ -35,6 +43,24 @@ def test_register_while_checkout(page,user):
     checkout = cart.proceed_to_checkout()
 
     checkout.is_loaded()
+
+    payment = checkout.place_order()
+
+    payment.is_loaded()
+
+    payment.enter_payment_details(payment_details)
+
+    confirmation = payment.confirm_order()
+
+    confirmation.is_loaded()
+
+    assert confirmation.has_order_placed()
+
+    home  = confirmation.continue_shopping()
+
+    assert home.user_logged_in()
+
+
 
 
 

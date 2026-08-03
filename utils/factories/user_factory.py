@@ -10,7 +10,7 @@ class UserFactory:
     def create(cls) -> User:
         return User(
             title=cls._fake.random_element(elements = ["Mr","Mrs"]),
-            email = f"{cls._fake.user_name()}_{datetime.now().strftime("%Y%m%d%H%M%S")}@example.com",
+            email= f"{cls._fake.user_name()}_{datetime.now():%Y%m%d%H%M%S}@example.com",
             password=cls._fake.password(),
             date_of_birth=str(cls._fake.random_int(1, 28)),
             months_of_birth=str(cls._fake.random_int(1, 12)),
