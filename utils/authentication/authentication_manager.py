@@ -80,7 +80,7 @@ class AuthManager:
         """
 
         if self._storage_state_exists(role):
-            self._storage_state_path(role)
+            return self._storage_state_path(role)
 
         return self._create_storage_state(browser, role)
 

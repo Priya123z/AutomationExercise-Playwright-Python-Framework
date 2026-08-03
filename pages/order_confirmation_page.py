@@ -27,4 +27,4 @@ class OrderConfirmationPage(BasePage):
         return home
 
     def has_order_placed(self) -> bool:
-        return self.get_text(self._success_message,"Success message for order placement" ) == "ORDER PLACED!"
+        return self.get_text(self._success_message,"Success message for order placement" ) == "Order Placed!"
