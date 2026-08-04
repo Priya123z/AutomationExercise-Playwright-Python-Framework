@@ -9,6 +9,7 @@ from utils.file_utils import FileUtils
 from utils.logger import logger
 from utils.screenshot import Screenshot
 from utils.config_manager import config
+from api.api_client import APIClient
 
 
 
@@ -147,3 +148,13 @@ def pytest_addoption(parser):
         default="chromium",
         help="Browser to execute tests"
     )
+
+
+@pytest.fixture(scope="session")
+def api_client(playwright):
+    logger.info("Creating API request context")
+    request_context = playwright.request.new_context(base_url=config.api_base_url,extra_http_headers={"Content-Type": "application/json","Accept":"application/json"})
+    client = APIClient(request_context)
+    yield client
+    logger.info("Closing API request context")
+    request_context.dispose()
