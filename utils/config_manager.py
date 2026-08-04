@@ -47,6 +47,8 @@ class ConfigManager:
 
         self.base_url = os.getenv("BASE_URL")
 
+        self.api_base_url = os.getenv("API_BASE_URL")
+
         self.browser = os.getenv("BROWSER")
 
         self.headless = os.getenv("HEADLESS")
