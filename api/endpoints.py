@@ -4,6 +4,8 @@ class Endpoints:
 
     PRODUCT = "/products/{id}"
 
+    ADD_PRODUCT = "/products/add"
+
     USERS = "/users"
 
     USER = "/users/{id}"

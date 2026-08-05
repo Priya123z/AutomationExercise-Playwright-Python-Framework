@@ -2,8 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from flows.login_flow import LoginFlow
-from pages.home_page import HomePage
+from flows.UI_Flow.login_flow import LoginFlow
 from utils.test_data import TestData
 
 filepath = Path(__file__).parent.parent.resolve()

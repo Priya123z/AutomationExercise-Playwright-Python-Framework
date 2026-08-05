@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from flows.register_flow import RegisterFlow
+from flows.UI_Flow.register_flow import RegisterFlow
 from models.payment_detail import PaymentDetails
 from utils.test_data import TestData
 
