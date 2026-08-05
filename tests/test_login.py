@@ -1,7 +1,5 @@
 from pathlib import Path
-
 import pytest
-
 from models.user import User
 from pages.home_page import HomePage
 from utils.test_data import TestData
