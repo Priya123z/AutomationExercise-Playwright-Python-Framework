@@ -16,7 +16,7 @@ class TestData:
         model: type[T] | None = None,
         filters: dict | None = None,
         **kwargs: Any,
-    ) -> list[T] | list[dict]:
+    ) -> list[T] | list[dict] | list[dict]:
 
         reader = ReaderFactory.get_reader(filepath)
         data = reader.read(filepath, **kwargs)
@@ -29,6 +29,10 @@ class TestData:
             ]
 
         if model:
-            return [model(**row) for row in data]
+
+            if isinstance(data, list):
+                return [model(**row) for row in data]
+
+            return model(**data)
 
         return data
