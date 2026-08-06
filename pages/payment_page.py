@@ -1,5 +1,5 @@
 from __future__ import annotations
-from models.payment_detail import PaymentDetails
+from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 from pages.base_page import BasePage
 from pages.order_confirmation_page import OrderConfirmationPage
 

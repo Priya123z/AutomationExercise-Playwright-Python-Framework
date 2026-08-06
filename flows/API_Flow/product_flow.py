@@ -1,11 +1,15 @@
-from models.create_product_request import CreateProductRequest
+from models.DummyJsonAPIModels.create_product_request import CreateProductRequest
 
 
 class ProductFlow:
 
-    def create_product_and_extract_id(self, product_api):
+    def __init__(self, product_api):
+        self.product_api = product_api
 
-        response = product_api.create_product(CreateProductRequest(
+
+    def create_product_and_extract_id(self):
+
+        response = self.product_api.create_product(CreateProductRequest(
             title="iPhone",
             price=1000,
             category="Mobile",
@@ -14,11 +18,12 @@ class ProductFlow:
 
         )
 
-        assert response.status == 201
 
-        product_id = response.json()["id"]
 
         print(response.status)
-        print(response.json())
+        print(response.text())
 
-        return product_id
+        assert response.status == 201
+
+
+        return response.json()["id"]

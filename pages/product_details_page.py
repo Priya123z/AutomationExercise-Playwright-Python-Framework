@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pages.base_page import BasePage
-from models.product import Product
+from models.DummyJsonAPIModels.product import Product
 
 class ProductDetailsPage(BasePage):
 

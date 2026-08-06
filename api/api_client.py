@@ -1,7 +1,9 @@
 from enum import StrEnum
+from urllib.parse import urljoin
 
 from playwright.sync_api import APIRequestContext, APIResponse
 
+from utils.config_manager import config
 from utils.logger import logger
 
 
@@ -20,24 +22,26 @@ class APIClient:
 
     def _send_request(
             self,
-            method: HttpMethod,
-            endpoint: str,
-            data: dict | None = None,
-            params: dict | None = None,
-            headers: dict | None = None,
-    ) -> APIResponse:
+            method:HttpMethod,
+            endpoint,
+            data=None,
+            form=None,
+            params=None,
+            headers=None,
+    ):
 
-        logger.info(f"{method} {endpoint}")
+
+        url = str(urljoin(config.api_base_url + "/", endpoint))
 
         response = self.request.fetch(
-            endpoint,
+            url,
             method=method,
+            form=form,
             data=data,
             params=params,
             headers=headers,
         )
 
-        logger.info(f"Response Status: {response.status}")
 
         return response
 
@@ -58,12 +62,16 @@ class APIClient:
             endpoint: str,
             data: dict | None = None,
             headers: dict | None = None,
+            form: dict | None = None,
     ) -> APIResponse:
 
         return self._send_request(method = HttpMethod.POST,
                                   endpoint=endpoint,
                                   data=data,
-                                  headers=headers)
+                                  headers=headers,
+                                  form=form)
+
+
 
     def put(
             self,
@@ -95,9 +103,17 @@ class APIClient:
     def delete(
             self,
             endpoint: str,
+            data: dict | None = None,
+            form: dict | None = None,
             headers: dict | None = None,
+
     ) -> APIResponse:
 
-        return self._send_request(method = HttpMethod.DELETE,
-                                  endpoint=endpoint,
-                                  headers=headers)
+
+        return self._send_request(
+            method=HttpMethod.DELETE,
+            endpoint=endpoint,
+            data=data,
+            form=form,
+            headers=headers)
+

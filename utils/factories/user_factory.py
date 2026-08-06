@@ -1,6 +1,6 @@
 from faker import Faker
 from datetime import datetime
-from models.user import User
+from models.AutomationExercise_UI_API_Models.user import User
 
 
 class UserFactory:

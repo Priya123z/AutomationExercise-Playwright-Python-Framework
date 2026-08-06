@@ -3,9 +3,11 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import sync_playwright
 from api.product_api import ProductAPI
-from models.create_product_request import CreateProductRequest
-from models.login_request import LoginRequest
-from models.update_product_request import UpdateProductRequest
+from flows.API_Flow.auth_flow import AuthFlow
+from flows.API_Flow.auth_negative_flow import AuthNegativeFlow
+from models.DummyJsonAPIModels.create_product_request import CreateProductRequest
+from models.DummyJsonAPIModels.login_request import LoginRequest
+from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
 from utils.artifact_manager import artifact
 from utils.authentication.authentication_manager import auth
 from utils.factories.browser_factory import BrowserFactory
@@ -163,10 +165,8 @@ def api_client(playwright):
     logger.info("Creating API request context")
     request_context = playwright.request.new_context(
         base_url=config.api_base_url,
-        extra_http_headers={
-            "Content-Type": "application/json",
-            "Accept":"application/json"
-        })
+    )
+
     client = APIClient(request_context)
     yield client
     logger.info("Closing API request context")
@@ -177,15 +177,22 @@ def api_client(playwright):
 def auth_api(api_client):
     return AuthAPI(api_client)
 
-
-
 @pytest.fixture(scope="session")
 def product_api(api_client):
     return ProductAPI(api_client)
 
 @pytest.fixture
-def product_flow():
-    return ProductFlow()
+def product_flow(product_api):
+    return ProductFlow(product_api)
+
+@pytest.fixture(scope="session")
+def auth_flow(auth_api):
+    return AuthFlow(auth_api)
+
+@pytest.fixture
+def auth_negative_flow(auth_api,auth_flow):
+    return AuthNegativeFlow(auth_api,auth_flow)
+
 
 # -------------------------
 # Test Data Fixtures
@@ -198,7 +205,6 @@ TEST_DATA_DIR = Path(__file__).parent / "test_data"/ "api"
 @pytest.fixture(scope="session")
 def login_request():
     return TestData.load(filepath = TEST_DATA_DIR/"login.json",model = LoginRequest)
-
 
 @pytest.fixture(scope="session")
 def create_product_request():

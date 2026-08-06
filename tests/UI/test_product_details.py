@@ -1,4 +1,4 @@
-from models.product import Product
+from models.DummyJsonAPIModels.product import Product
 from pages.home_page import HomePage
 
 

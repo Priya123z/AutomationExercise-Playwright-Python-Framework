@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from models.payment_detail import PaymentDetails
+from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 
 from pages.home_page import HomePage
 from utils.test_data import TestData

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from pages.base_page import BasePage
 from pages.signup_login_page.account_created_page import AccountCreatedPage
-from models.user import User
+from models.AutomationExercise_UI_API_Models.user import User
 from utils.factories.writer_factory import WriterFactory
 
 file_path = Path(__file__).parent.parent.parent.resolve()

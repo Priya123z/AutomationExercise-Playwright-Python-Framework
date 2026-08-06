@@ -3,8 +3,8 @@ from dataclasses import asdict
 
 from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.create_product_request import CreateProductRequest
-from models.update_product_request import UpdateProductRequest
+from models.DummyJsonAPIModels.create_product_request import CreateProductRequest
+from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
 from utils.logger import logger
 
 

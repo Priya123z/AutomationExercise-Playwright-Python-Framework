@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from dataclasses import asdict
 
-from models.user import User
+from models.AutomationExercise_UI_API_Models.user import User
 
 
 class JsonUtils:
