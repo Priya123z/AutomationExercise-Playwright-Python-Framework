@@ -6,7 +6,7 @@ from flows.UI_Flow.register_flow import RegisterFlow
 from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 from utils.test_data import TestData
 
-filepath  = Path(__file__).parent.parent.resolve()
+filepath  = Path(__file__).parent.parent.parent.resolve()
 payments = TestData.load(filepath/"test_data"/"payments"/"payment.json", model=PaymentDetails)
 
 @pytest.mark.parametrize("payment_details",payments)
