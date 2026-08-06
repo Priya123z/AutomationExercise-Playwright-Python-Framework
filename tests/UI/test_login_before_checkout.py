@@ -7,7 +7,7 @@ from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetail
 from pages.home_page import HomePage
 from utils.test_data import TestData
 
-filepath = Path(__file__).parent.parent.resolve()
+filepath = Path(__file__).parent.parent.parent.resolve()
 
 
 payments = TestData.load(filepath /"test_data" /"payments" /"payment.json", model=PaymentDetails)
