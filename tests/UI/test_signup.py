@@ -2,7 +2,14 @@
 from pages.home_page import HomePage
 from utils.factories.user_factory import UserFactory
 
+import allure
 
+
+@allure.feature("Authentication")
+@allure.story("User Registration")
+@allure.title("Register a new user successfully")
+@allure.description("Verify that a new user can be registered using valid details.")
+@allure.severity(allure.severity_level.CRITICAL)
 def test_signup(page):
 
     user = UserFactory.create()

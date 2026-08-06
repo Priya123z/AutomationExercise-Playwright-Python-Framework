@@ -6,7 +6,7 @@ from pages.home_page import HomePage
 from utils.test_data import TestData
 from models.AutomationExercise_UI_API_Models.user import User
 
-filepath  = Path(__file__).parent.parent.resolve()
+filepath  = Path(__file__).parent.parent.parent.resolve()
 
 users = TestData.load(filepath /"test_data/users/users.json", model=User)
 # users -> list[User]

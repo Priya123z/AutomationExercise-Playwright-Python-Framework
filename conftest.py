@@ -117,7 +117,7 @@ def authenticated_page(authenticated_context):
 
     logger.info("Opening Authenticated Page")
 
-    page = create_page(authenticated_context)
+    page = _create_page(authenticated_context)
 
     yield page
 

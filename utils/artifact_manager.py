@@ -3,7 +3,7 @@ from datetime import datetime
 class ArtifactManager:
     _instance = None
 
-    _ARTIFACT_TYPES = ["logs","screenshots","reports","videos","traces"]
+    _ARTIFACT_TYPES = ["logs","screenshots","reports","videos","traces","allure-results"]
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -33,4 +33,11 @@ class ArtifactManager:
             path.mkdir(parents=True, exist_ok=True)
             setattr(self, f"{folder}_dir", path)
 
+    @property
+    def html_report(self):
+        return self.reports_dir / "report.html"
+
+    @property
+    def allure_report_dir(self):
+        return self.execution_dir / "allure-report"
 artifact = ArtifactManager()

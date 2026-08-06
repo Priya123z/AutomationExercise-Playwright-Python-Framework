@@ -3,9 +3,11 @@ name = "orangehrm-playwright-python"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "allure-python-commons>=2.16.0",
     "components>=0.0.1a0",
     "faker>=40.36.0",
     "file-path>=0.3.1",
+    "jsonschema>=4.26.0",
     "loguru>=0.7.3",
     "openpyxl>=3.1.5",
     "page>=0.3",
