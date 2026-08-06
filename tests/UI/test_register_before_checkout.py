@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from flows.UI_Flow.register_flow import RegisterFlow
-from models.payment_detail import PaymentDetails
+from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 from utils.test_data import TestData
 
 filepath  = Path(__file__).parent.parent.resolve()
