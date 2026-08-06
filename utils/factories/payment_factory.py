@@ -1,6 +1,6 @@
 from faker import Faker
 
-from models.payment_detail import PaymentDetails
+from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 
 
 class PaymentFactory:

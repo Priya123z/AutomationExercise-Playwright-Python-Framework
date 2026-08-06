@@ -1,5 +1,5 @@
 from __future__ import annotations
-from models.user import User
+from models.AutomationExercise_UI_API_Models.user import User
 from pages.base_page import BasePage
 
 class SignUpLoginPage(BasePage):

@@ -1,4 +1,4 @@
-from models.cart_product import CartProduct
+from models.AutomationExercise_UI_API_Models.cart_product import CartProduct
 from pages.home_page import HomePage
 
 
