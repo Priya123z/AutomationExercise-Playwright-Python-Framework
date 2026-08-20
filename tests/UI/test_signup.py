@@ -12,23 +12,32 @@ import allure
 @allure.severity(allure.severity_level.CRITICAL)
 def test_signup(page):
 
-    user = UserFactory.create()
+    with allure.step("Create test user"):
+        user = UserFactory.create()
 
     home = HomePage(page)
 
-    signup_login = home.navbar.open_signup_login()
-    signup_login.is_loaded()
+    with allure.step("Open Signup/Login page"):
+        signup_login = home.navbar.open_signup_login()
+        signup_login.is_loaded()
 
-    signup_page = signup_login.start_signup(user)
-    signup_page.is_loaded()
+    with allure.step("Start signup"):
+        signup_page = signup_login.start_signup(user)
+        signup_page.is_loaded()
 
-    account_created = signup_page.create_account(user)
-    account_created.is_loaded()
+    with allure.step("Create account"):
+        account_created = signup_page.create_account(user)
+        account_created.is_loaded()
 
-    home = account_created.continue_to_home()
+    with allure.step("Continue to home"):
 
-    assert home.user_logged_in()
-    home.navbar.logout()
+        home = account_created.continue_to_home()
+
+    with allure.step("Verify user is logged in"):
+
+        assert home.user_logged_in()
+    with allure.step("Logging out the user"):
+        home.navbar.logout()
 
 
 

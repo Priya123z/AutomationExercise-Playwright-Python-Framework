@@ -1,15 +1,23 @@
-.venv/
-.idea/
+# Python
 __pycache__/
+*.pyc
+.venv/
+
+# Pytest
 .pytest_cache/
 
-config/
-playwright-report/
-test-results/
+# Reports
 allure-results/
 allure-report/
 reports/
-screenshots/
-logs/
-trace.zip
+
+# Playwright
+test-results/
+playwright-report/
+
+# Artifacts
 artifacts/
+
+# IDE
+.idea/
+.vscode/
