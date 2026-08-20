@@ -48,9 +48,7 @@ def browser(playwright):
 def context(browser,request):
     logger.info("Creating Browser Context with tracing and video recording enabled")
     browser_context = browser.new_context(record_video_dir = artifact.videos_dir)
-
     browser_context.route("**/*",block_ads)
-
     browser_context.tracing.start(screenshots=True, snapshots=True)
     yield browser_context
     logger.info("Closing Browser Context")
