@@ -1,8 +1,8 @@
-def test_get_product_by_id(product_api):
+def test_get_product_by_id(dummyjson_product_api):
 
     product_id = 1
 
-    response = product_api.get_product_by_id(product_id)
+    response = dummyjson_product_api.get_product_by_id(product_id)
 
     assert response.ok
     assert response.status == 200

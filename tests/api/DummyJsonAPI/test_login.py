@@ -1,9 +1,6 @@
+def test_login(dummyjson_auth_api, login_request):
 
-
-def test_login(auth_api, login_request):
-
-
-    response = auth_api.login(login_request)
+    response = dummyjson_auth_api.login(login_request)
 
     assert response.ok
     assert response.status == 200

@@ -1,6 +1,6 @@
-def test_create_product(product_api, create_product_request):
+def test_create_product(dummyjson_product_api, create_product_request):
 
-    response = product_api.create_product(create_product_request)
+    response = dummyjson_product_api.create_product(create_product_request)
 
     assert response.ok
     assert response.status == 201

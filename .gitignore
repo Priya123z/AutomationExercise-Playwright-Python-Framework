@@ -21,3 +21,6 @@ artifacts/
 # IDE
 .idea/
 .vscode/
+
+# Authentication state
+utils/auth/

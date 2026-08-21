@@ -15,7 +15,7 @@ class ConfigManager:
 
         return cls._instance
 
-    def __init__(self, env="qa"):
+    def __init__(self, env="qa",browser = None):
 
         if getattr(self, "_initialized", False):
             return
@@ -56,6 +56,8 @@ class ConfigManager:
         self.timeout = os.getenv("DEFAULT_TIMEOUT")
 
         self.expect_timeout = os.getenv("EXPECT_TIMEOUT")
+
+        self.dummyjson_api_base_url = os.getenv("DUMMYJSON_API_BASE_URL")
 
     def _validate_configuration(self):
 
@@ -118,7 +120,9 @@ class ConfigManager:
                 "EXPECT_TIMEOUT must be greater than zero."
             )
 
-
-
+        if not self.dummyjson_api_base_url:
+            raise ValueError(
+                "DUMMYJSON_API_BASE_URL is missing."
+            )
 
 config = ConfigManager()
