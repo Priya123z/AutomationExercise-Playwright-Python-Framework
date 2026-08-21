@@ -25,6 +25,3 @@ def test_verify_product_quantity(page):
 
     assert actual == expected
     assert actual.total_price == actual.unit_price * actual.quantity
-
-def test_github_actions_artifact_demo():
-    assert False, "Temporary CI artifact test"
