@@ -1,9 +1,9 @@
 
 
 
-def test_get_all_products(product_api):
+def test_get_all_products(dummyjson_product_api):
 
-    response = product_api.get_all_products()
+    response = dummyjson_product_api.get_all_products()
 
     assert response.ok
 

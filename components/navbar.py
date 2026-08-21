@@ -16,7 +16,7 @@ class Navbar(BasePage):
         super().__init__(page)
         self._home_link = page.get_by_role("link", name = "Home")
         self._product_link = page.get_by_role("link", name = "Products")
-        self._cart_link = page.get_by_role("link", name = "Cart")
+        self._cart_link = self.page.locator('a[href="/view_cart"]').first
         self._signup_link = page.get_by_role("link", name="Signup / Login")
         self._contact_us_link = page.get_by_role("link", name = "Contact us")
         self._test_cases_link = page.locator("a").filter(has_text="Test Cases").first

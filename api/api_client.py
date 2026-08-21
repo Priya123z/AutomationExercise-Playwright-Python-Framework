@@ -17,8 +17,9 @@ class HttpMethod(StrEnum):
 class APIClient:
 
 
-    def __init__(self, request_context: APIRequestContext):
+    def __init__(self,request_context: APIRequestContext,base_url: str,):
         self.request = request_context
+        self.base_url = base_url or config.api_base_url
 
     def _send_request(
             self,
@@ -29,9 +30,7 @@ class APIClient:
             params=None,
             headers=None,
     ):
-
-
-        url = str(urljoin(config.api_base_url + "/", endpoint))
+        url = str(urljoin(self.base_url + "/", endpoint))
 
         response = self.request.fetch(
             url,

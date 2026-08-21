@@ -145,12 +145,8 @@ def pytest_runtest_makereport(item, call):
             Screenshot.capture(page, item.name)
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--browser",
-        action="store",
-        default="chromium",
-        help="Browser to execute tests"
-    )
+    parser.addoption("--browser",action="store",default=None,help="Browser to execute tests: chromium, firefox, webkit")
+    parser.addoption("--environment",action="store",default="qa",help="Environment to execute tests: qa, uat, prod")
 
 
 # -------------------------
@@ -158,30 +154,69 @@ def pytest_addoption(parser):
 # -------------------------
 
 
+#---------------------------
+# Automation Exercise API fixture
+#---------------------------
+
+
 @pytest.fixture(scope="session")
-def api_client(playwright):
-    logger.info("Creating API request context")
+def automation_exercise_api_client(playwright):
+    logger.info("Creating Automation Exercise API request context")
+
     request_context = playwright.request.new_context(
         base_url=config.api_base_url,
     )
 
-    client = APIClient(request_context)
+    client = APIClient(
+        request_context,
+        config.api_base_url,
+    )
+
     yield client
-    logger.info("Closing API request context")
+
+    logger.info("Closing Automation Exercise API request context")
+    request_context.dispose()
+
+
+
+#---------------------------
+# Dummy JSON API fixture
+#---------------------------
+
+@pytest.fixture(scope="session")
+def dummyjson_api_client(playwright):
+    logger.info("Creating DummyJSON API request context")
+
+    request_context = playwright.request.new_context(
+        base_url=config.dummyjson_api_base_url,
+    )
+
+    client = APIClient(
+        request_context,
+        config.dummyjson_api_base_url,
+    )
+
+    yield client
+
+    logger.info("Closing DummyJSON API request context")
     request_context.dispose()
 
 
 @pytest.fixture(scope="session")
-def auth_api(api_client):
-    return AuthAPI(api_client)
+def auth_api(automation_exercise_api_client):
+    return AuthAPI(automation_exercise_api_client)
 
 @pytest.fixture(scope="session")
-def product_api(api_client):
-    return ProductAPI(api_client)
+def dummyjson_auth_api(dummyjson_api_client):
+    return AuthAPI(dummyjson_api_client)
+
+@pytest.fixture(scope="session")
+def dummyjson_product_api(dummyjson_api_client):
+    return ProductAPI(dummyjson_api_client)
 
 @pytest.fixture
-def product_flow(product_api):
-    return ProductFlow(product_api)
+def product_flow(dummyjson_product_api):
+    return ProductFlow(dummyjson_product_api)
 
 @pytest.fixture(scope="session")
 def auth_flow(auth_api):

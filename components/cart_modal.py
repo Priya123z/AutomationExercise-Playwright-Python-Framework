@@ -1,6 +1,9 @@
 from __future__ import annotations
+
+from playwright.sync_api import expect
 from pages.base_page import BasePage
 from pages.cart_page import CartPage
+from utils.config_manager import config
 
 
 class CartModal(BasePage):
@@ -14,6 +17,9 @@ class CartModal(BasePage):
     def is_loaded(self)->None:
         self.wait_for_visibility(self._modal, "Cart Modal")
         self.wait_for_visibility(self._view_cart, "View Cart")
+
+    def wait_until_loaded(self):
+        expect(self._modal).to_be_visible(timeout=config.expect_timeout)
 
     def continue_shopping(self)->ProductPage:
         from pages.product_page import ProductPage
