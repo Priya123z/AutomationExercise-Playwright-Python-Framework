@@ -36,4 +36,6 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -qcat .github/workflows/ci.yml
+          pytest -q
+
+
