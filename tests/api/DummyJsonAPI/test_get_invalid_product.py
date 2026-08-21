@@ -1,6 +1,6 @@
-def test_get_invalid_product(product_api):
+def test_get_invalid_product(dummyjson_product_api):
 
-    response = product_api.get_product_by_id(999999)
+    response = dummyjson_product_api.get_product_by_id(999999)
 
     assert response.status == 404
 

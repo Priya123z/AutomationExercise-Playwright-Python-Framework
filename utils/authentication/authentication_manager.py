@@ -75,12 +75,13 @@ class AuthManager:
 
     def get_storage_state(self, browser, role: str)->Path:
         """
-        Returns a valid storage state.
-        Recreates it everytime for now
+        Creates a fresh storage state for the requested role.
         """
 
-        if self._storage_state_exists(role):
-            return self._storage_state_path(role)
+        storage_state = self._storage_state_path(role)
+
+        if storage_state.exists():
+            storage_state.unlink()
 
         return self._create_storage_state(browser, role)
 

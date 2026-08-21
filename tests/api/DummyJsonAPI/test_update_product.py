@@ -1,8 +1,8 @@
-def test_update_product(product_api, update_product_request):
+def test_update_product(dummyjson_product_api, update_product_request):
 
     product_id = 1
 
-    response = product_api.update_product(
+    response = dummyjson_product_api.update_product(
         product_id=product_id,
         request=update_product_request,
     )
