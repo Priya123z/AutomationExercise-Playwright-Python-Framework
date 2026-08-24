@@ -41,9 +41,10 @@ class ConfigManager:
                 f"Environment configuration file not found: {env_file}"
             )
 
-        load_dotenv(env_file,override=True)
+        load_dotenv(env_file,override=False)
 
     def _read_configuration(self):
+
 
         self.base_url = os.getenv("BASE_URL")
 

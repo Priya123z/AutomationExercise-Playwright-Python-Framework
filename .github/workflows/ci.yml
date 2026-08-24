@@ -16,6 +16,15 @@ jobs:
     name: Run Automation Tests
     runs-on: ubuntu-latest
 
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      API_BASE_URL: ${{ vars.API_BASE_URL }}
+      DUMMYJSON_API_BASE_URL: ${{ vars.DUMMYJSON_API_BASE_URL }}
+      HEADLESS: "true"
+      BROWSER: "chromium"
+      DEFAULT_TIMEOUT: "10000"
+      EXPECT_TIMEOUT: "20000"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,3 +67,4 @@ jobs:
         with:
           name: allure-report
           path: allure-report
+
