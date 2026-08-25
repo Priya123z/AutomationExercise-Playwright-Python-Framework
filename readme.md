@@ -1,300 +1,400 @@
-````markdown
+# Automation Exercise - Playwright Python Framework
 
-# Automation Exercise - Playwright Python
+A scalable UI and API automation framework built with **Playwright and
+Python**.
 
-A UI and API automation framework built with Playwright, Python and Pytest.
+What started as a collection of automation scripts gradually evolved
+into a maintainable framework as the project grew in size and
+complexity. This repository focuses on scalability, reusability, clean
+architecture, reliable test execution, and useful diagnostics rather
+than simply automating test cases.
 
-This project started as a collection of automation scripts for the Automation Exercise application. As the number of tests grew, I gradually started introducing proper framework components instead of keeping everything inside individual test cases.
+------------------------------------------------------------------------
 
-The focus of this project is not just writing automated tests, but building something that is easier to maintain, debug and extend.
+## Why this project exists
 
-## Why this exists
+Writing automated tests is easy. Keeping a growing automation suite
+maintainable is not.
 
-Writing a few automated tests is fairly straightforward. The challenge starts when the test suite grows.
+As the suite grew, the framework needed better separation of
+responsibilities, reusable components, centralized configuration,
+reliable diagnostics, API abstraction, and CI/CD support.
 
-I wanted to avoid having test cases filled with browser setup, API calls, test data creation, assertions and configuration. So the framework is structured around separate responsibilities for pages, flows, APIs, test data, configuration and utilities.
+The goal is to build automation that is:
 
-The idea is simple:
+-   Maintainable
+-   Reusable
+-   Scalable
+-   Debuggable
+-   CI/CD ready
 
-**Tests should describe what is being tested, while the framework handles how it is tested.**
-
----
+------------------------------------------------------------------------
 
 ## Tech Stack
 
-- **Python** - Core programming language
-- **Playwright** - UI and API automation
-- **Pytest** - Test execution and fixtures
-- **Allure** - Test reporting
-- **JSON Schema** - API response/contract validation
-- **Faker** - Dynamic test data generation
-- **Loguru** - Logging
-- **OpenPyXL** - Excel test data
-- **python-dotenv** - Environment configuration
+-   **Python** - Core programming language
+-   **Playwright** - UI and API automation
+-   **Pytest** - Test runner, fixtures, parameterization, and test
+    organization
+-   **pytest-xdist** - Parallel test execution
+-   **Allure** - Interactive test reporting
+-   **JSON Schema** - API contract validation
+-   **Faker** - Dynamic test data generation
+-   **Loguru** - Centralized logging
+-   **OpenPyXL** - Excel test-data support
+-   **python-dotenv** - Environment configuration
+-   **Git / GitHub** - Version control
+-   **GitHub Actions** - CI/CD execution
 
----
+------------------------------------------------------------------------
+
+## Architecture
+
+The framework separates test scenarios from implementation details.
+
+``` text
+                         TEST CASES
+                             |
+                             v
+                      BUSINESS FLOWS
+                             |
+              +--------------+--------------+
+              |                             |
+              v                             v
+         PAGE OBJECTS                    API LAYER
+              |                             |
+              v                             v
+        PLAYWRIGHT UI                   API CLIENT
+                                            |
+                                            v
+                                         ENDPOINTS
+
+                  COMMON FRAMEWORK LAYERS
+                             |
+             +---------------+---------------+
+             |               |               |
+             v               v               v
+        TEST DATA      CONFIGURATION     UTILITIES
+        FACTORIES       MANAGEMENT       & LOGGING
+             |               |               |
+             +---------------+---------------+
+                             v
+                       VALIDATION
+                             |
+                  +----------+----------+
+                  |                     |
+                  v                     v
+             JSON Schema           Business
+             Validation            Validation
+```
+
+------------------------------------------------------------------------
 
 ## Project Structure
 
-```text
-AutomationExercise-Playwright-Python/
-│
-├── api/                # API client, API implementations and endpoints
-├── config/             # Configuration and environment management
-├── flows/              # Business flows
-├── models/             # Request and response models
-├── pages/              # Page Object Models and UI components
-├── schemas/            # JSON schemas for API contract validation
-├── tests/              # UI and API test cases
-├── test_data/          # Test data
-├── utils/              # Factories, readers, logging and utilities
-│
-├── artifacts/          # Execution artifacts
-├── conftest.py         # Pytest fixtures and hooks
-├── pytest.ini          # Pytest configuration
-├── requirements.txt    # Python dependencies
-└── README.md
-````
-
-The basic flow looks like this:
-
-```text
-Test
- ↓
-Flow
- ↓
- ├── Page Object → Playwright
- │
- └── API Layer → API Client → Endpoint
+``` text
+AutomationExercise-Playwright-Python-Framework/
+|
++-- api/
+|   +-- api_client.py
+|   +-- auth_api.py
+|   +-- product_api.py
+|   +-- endpoints.py
+|
++-- config/
+|   +-- qa.env
+|   +-- uat.env
+|   +-- prod.env
+|
++-- flows/
+|   +-- API_Flow/
+|       +-- auth_flow.py
+|       +-- auth_negative_flow.py
+|       +-- product_flow.py
+|
++-- models/
+|   +-- ...
+|
++-- pages/
+|   +-- ...
+|
++-- schemas/
+|   +-- ...
+|
++-- tests/
+|   +-- UI/
+|   +-- api/
+|
++-- test_data/
+|   +-- ...
+|
++-- utils/
+|   +-- factories/
+|   +-- readers/
+|   +-- authentication/
+|   +-- artifact_manager.py
+|   +-- config_manager.py
+|   +-- logger.py
+|   +-- schema_validator.py
+|   +-- test_data.py
+|   +-- ...
+|
++-- artifacts/
+|   +-- ...
+|
++-- .github/
+|   +-- workflows/
+|       +-- ci.yml
+|
++-- conftest.py
++-- pytest.ini
++-- requirements.txt
++-- .gitignore
++-- README.md
 ```
 
-Common utilities such as configuration, logging, test data and validation are shared across the framework.
+> Generated reports, logs, screenshots, traces, videos, Allure results,
+> environment files, and virtual environments should not be committed to
+> Git.
 
----
+------------------------------------------------------------------------
 
-# UI Automation
+# Features
 
-The UI layer uses Playwright's Python sync API and follows the Page Object Model.
+## UI Automation
 
-The goal is to keep browser interactions inside page objects instead of putting selectors and UI actions directly into tests.
+-   Playwright with Python
+-   Page Object Model
+-   Reusable page components
+-   Browser Factory
+-   Chromium / Firefox / WebKit support
+-   Pytest fixtures
+-   Dynamic test data
+-   Business-oriented UI flows
+-   Automatic screenshots on failure
+-   Tracing and video capture for diagnostics
 
-A typical test therefore looks more like a business scenario:
+## API Automation
 
-```python
-user = UserFactory.create()
+The API layer follows a layered architecture:
 
-home = HomePage(page)
-
-signup_login = home.navbar.open_signup_login()
-signup_login.is_loaded()
-
-signup_page = signup_login.start_signup(user)
-signup_page.is_loaded()
-
-account_created = signup_page.create_account(user)
-account_created.is_loaded()
-
-home = account_created.continue_to_home()
-
-assert home.user_logged_in()
-```
-
-This keeps the test readable while the actual UI implementation remains inside the page objects.
-
----
-
-# API Automation
-
-The API layer is built using Playwright's API capabilities.
-
-Instead of making API calls directly from tests, the framework separates the API implementation into an API client and API-specific classes.
-
-```text
+``` text
 Test
- ↓
+  |
+  v
 Flow
- ↓
-AuthAPI
- ↓
-APIClient
- ↓
+  |
+  v
+API
+  |
+  v
+API Client
+  |
+  v
 Endpoint
 ```
 
-The current API automation includes:
+The framework currently covers:
 
-* User registration
-* User login
-* Account deletion
-* CRUD operations
-* Positive and negative scenarios
-* Request/response models
-* API chaining
+-   REST API testing
+-   CRUD operations
+-   Request/response models
+-   Centralized API client
+-   Endpoint management
+-   API chaining
+-   Positive and negative scenarios
+-   HTTP validation
+-   Business validation
+-   JSON Schema contract validation
+-   API response attachments in Allure
 
----
+------------------------------------------------------------------------
 
-# API Chaining
+## API Chaining
 
-One of the things I wanted to avoid was treating every API request as a completely isolated test.
+The framework supports multi-step API workflows.
 
-For example, a realistic authentication workflow can be:
+Example:
 
-```text
+``` text
 Create User
-    ↓
+     |
+     v
 Login User
-    ↓
+     |
+     v
 Delete User
 ```
 
-The framework passes the generated user through the workflow.
+Dynamically generated test data can be passed from one operation to the
+next, allowing dependent API operations to be validated as an end-to-end
+workflow rather than isolated requests.
 
-For example:
+------------------------------------------------------------------------
 
-```python
-user = self.register_and_verify_user()
+# API Validation Strategy
 
-user = self.register_and_verify_login(user)
-
-user, delete_body = self.register_and_verify_delete(user)
-```
-
-This makes it possible to test dependent API operations as part of a single business flow.
-
----
-
-# API Response Validation
-
-API validation is split into three levels.
+API responses are validated at multiple levels.
 
 ### 1. HTTP Validation
 
-First, I validate the actual HTTP response.
+Validates the actual HTTP response status.
 
-```python
+``` python
 assert response.status == 200
 ```
 
 ### 2. Business Validation
 
-Then I validate the values returned by the application.
+Validates application-specific response values.
 
-```python
+``` python
 assert login_body.responseCode == 200
 assert login_body.message == "User exists!"
 ```
 
 ### 3. Contract Validation
 
-Finally, the response is validated against a JSON Schema.
+Validates the response structure against a JSON Schema.
 
-```python
+``` python
 SchemaValidator.validate_response(
     response,
     "schemas/auth/login_user_schema.json"
 )
 ```
 
-This is useful because a `200` response by itself doesn't tell us whether the response has the structure the consumer expects.
+This helps detect breaking API contract changes even when the HTTP
+status code is successful.
 
----
+------------------------------------------------------------------------
 
-# Test Data
+# Test Data Management
 
-Test data is generated through reusable factories rather than being hard-coded inside individual tests.
+The framework uses reusable test-data factories instead of hard-coded
+data.
 
-For example:
-
-```python
+``` python
 user = UserFactory.create()
 ```
 
-Faker is used to generate unique user information so that tests don't repeatedly depend on the same static data.
+Dynamic data generation is supported through **Faker**.
 
-The framework also has support for reading test data from:
+Structured test data is also supported through:
 
-* CSV
-* Excel
-* JSON
+-   CSV
+-   Excel
+-   JSON
+-   Pytest parameterization
 
----
+This keeps test data separate from test logic and makes scenarios easier
+to extend.
 
-# Configuration
+------------------------------------------------------------------------
 
-Environment-specific values are kept outside the test code.
+# Configuration Management
 
-The configuration layer handles things such as:
+Environment-specific configuration is separated from test logic.
 
-* Base URL
-* API Base URL
-* Browser
-* Headless execution
-* Environment-specific settings
+Current configuration includes values such as:
 
-Sensitive values should not be committed to Git.
+-   `BASE_URL`
+-   `API_BASE_URL`
+-   `DUMMYJSON_API_BASE_URL`
+-   `BROWSER`
+-   `HEADLESS`
+-   `DEFAULT_TIMEOUT`
+-   `EXPECT_TIMEOUT`
 
-A `.env.example` file can be used to show which configuration values are required without exposing actual credentials.
+Example:
 
----
+``` text
+config/qa.env
 
-# Logging and Failure Debugging
-
-One of the things I wanted from the framework was better information when a test fails.
-
-The framework uses Loguru for centralized logging.
-
-For UI failures, screenshots are automatically captured using a Pytest test-result hook.
-
-Execution artifacts are grouped by execution ID:
-
-```text
-artifacts/
-└── <execution_id>/
-    ├── logs/
-    ├── screenshots/
-    ├── reports/
-    ├── videos/
-    ├── traces/
-    └── allure-results/
+BASE_URL=https://automationexercise.com/
+API_BASE_URL=https://automationexercise.com/api
+BROWSER=chromium
+HEADLESS=True
+DEFAULT_TIMEOUT=10000
+EXPECT_TIMEOUT=20000
 ```
 
-The idea is that when a test fails, I should be able to look at the logs, screenshot and report and understand what happened without immediately having to reproduce the failure locally.
+Environment files containing sensitive values should remain local and
+must not be committed to Git.
 
----
+In CI, environment-specific values are supplied through GitHub Actions
+configuration rather than hard-coding secrets into the workflow.
+
+------------------------------------------------------------------------
+
+# Logging & Diagnostics
+
+Centralized logging is implemented using **Loguru**.
+
+Logs help answer:
+
+-   What action was being performed?
+-   Which test was executing?
+-   Which API request was sent?
+-   Where did execution fail?
+
+For UI failures, screenshots are captured automatically using a Pytest
+test-result hook.
+
+Playwright tracing and video recording are also enabled through the test
+fixtures to make failures easier to investigate.
+
+Execution artifacts are organized by execution ID:
+
+``` text
+artifacts/
++-- <execution_id>/
+    +-- logs/
+    +-- screenshots/
+    +-- reports/
+    +-- videos/
+    +-- traces/
+    +-- allure-results/
+```
+
+------------------------------------------------------------------------
 
 # Allure Reporting
 
-Allure is used for test reporting and debugging.
+The framework uses **Allure** for interactive test reporting.
 
-The framework currently uses:
+Current capabilities include:
 
-* Features
-* Stories
-* Test titles
-* Descriptions
-* Severity
-* Execution steps
-* API response attachments
+-   Features
+-   Stories
+-   Test titles
+-   Test descriptions
+-   Severity
+-   Execution steps
+-   API response attachments
+-   Allure results generated during CI execution
+-   HTML Allure report generated in CI
+-   Allure results and report uploaded as GitHub Actions artifacts
 
-For example:
+Example:
 
-```python
+``` python
 @allure.feature("Authentication")
 @allure.story("User Registration")
 @allure.title("Register a new user successfully")
 @allure.severity(allure.severity_level.CRITICAL)
 ```
 
-Individual operations are also grouped into readable steps:
+Execution steps can be represented using:
 
-```python
+``` python
 with allure.step("Register user"):
     response, register_body = self.auth_api.register(user)
 ```
 
-API responses can be attached directly to the report:
+API responses can also be attached to the report:
 
-```python
+``` python
 allure.attach(
     response.text(),
     name="Register API Response",
@@ -302,207 +402,286 @@ allure.attach(
 )
 ```
 
-This makes the Allure report useful not only for seeing whether a test passed or failed, but also for understanding what happened during execution.
+------------------------------------------------------------------------
 
----
+# GitHub Actions CI/CD
+
+The framework is integrated with **GitHub Actions**.
+
+The CI workflow currently performs:
+
+1.  Checkout of the repository
+2.  Python environment setup
+3.  Dependency installation
+4.  Playwright browser installation
+5.  Parallel test execution
+6.  Allure result generation
+7.  Allure HTML report generation
+8.  Upload of Allure results as an artifact
+9.  Upload of the generated Allure HTML report as an artifact
+
+The workflow runs for pushes and pull requests targeting the configured
+branches.
+
+The test suite has been validated locally and in GitHub Actions with
+**two parallel workers** using `pytest-xdist`.
+
+Example local execution:
+
+``` bash
+pytest -n 2 -q
+```
+
+CI execution:
+
+``` bash
+pytest -n 2 -q --alluredir=allure-results
+```
+
+> Because the UI tests use a public practice application, occasional
+> external-site issues such as transient availability or Cloudflare
+> responses can occur. These are investigated separately from
+> framework-level failures using screenshots, traces, logs, and Allure
+> artifacts.
+
+------------------------------------------------------------------------
+
+# CI Artifacts
+
+The workflow preserves test diagnostics even when tests fail.
+
+Important artifacts include:
+
+``` text
+allure-results/
+allure-report/
+```
+
+These are uploaded to the GitHub Actions run so that test results can be
+inspected after execution.
+
+This makes CI failures easier to diagnose without reproducing the run
+locally.
+
+------------------------------------------------------------------------
 
 # Getting Started
 
 ## Prerequisites
 
-* Python 3.10+
-* pip
-* Git
+-   Python 3.10+
+-   pip
+-   Git
+-   Playwright
 
 ## Clone the repository
 
-```bash
-git clone https://github.com/Priya123z/AutomationExercise-Playwright-Python.git
+``` bash
+git clone https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework.git
 
-cd AutomationExercise-Playwright-Python
+cd AutomationExercise-Playwright-Python-Framework
 ```
 
 ## Create a virtual environment
 
-```bash
+``` bash
 python -m venv .venv
 ```
 
 Activate it on Linux/macOS:
 
-```bash
+``` bash
 source .venv/bin/activate
 ```
 
 ## Install dependencies
 
-```bash
+``` bash
 pip install -r requirements.txt
 ```
 
 Install Playwright browsers:
 
-```bash
+``` bash
 playwright install
 ```
 
----
+------------------------------------------------------------------------
 
 # Running Tests
 
-Run the complete suite:
+## Run the complete suite
 
-```bash
-pytest
+``` bash
+pytest -q
 ```
 
-Run API tests:
+## Run UI tests
 
-```bash
-pytest tests/api
+``` bash
+pytest tests/UI -q
 ```
 
-Run UI tests:
+## Run API tests
 
-```bash
-pytest tests/UI
+``` bash
+pytest tests/api -q
 ```
 
-Run a specific test file:
+## Run a specific test file
 
-```bash
-pytest tests/api/test_auth.py
+``` bash
+pytest tests/UI/test_login.py -q
 ```
 
-Run against a specific browser:
+## Run in parallel
 
-```bash
+``` bash
+pytest -n 2 -q
+```
+
+## Run a specific browser
+
+``` bash
 pytest --browser=chromium
 ```
 
 or:
 
-```bash
+``` bash
 pytest --browser=firefox
-```
-
-```bash
 pytest --browser=webkit
 ```
 
----
+------------------------------------------------------------------------
 
-# Allure Report
+# Allure Reports
 
-Run the tests with Allure results enabled:
+Generate Allure results while running the suite:
 
-```bash
-pytest --alluredir=allure-results
+``` bash
+pytest -q --alluredir=allure-results
 ```
 
-Then open the report:
+Generate and open the interactive report locally:
 
-```bash
+``` bash
 allure serve allure-results
 ```
 
-The generated Allure results and other execution artifacts should not be committed to Git.
+For CI executions, the generated Allure results and HTML report are
+available through the GitHub Actions workflow artifacts.
 
----
+------------------------------------------------------------------------
 
 # Design Principles
 
-A few principles I am trying to follow while building this framework:
+### Scalability
 
-### Keep tests readable
+The framework structure makes it possible to add new tests without
+unnecessarily modifying existing components.
 
-A test should look like a test scenario rather than a collection of low-level implementation details.
+### Maintainability
 
-### Avoid duplication
+Responsibilities are separated between tests, flows, pages, APIs,
+utilities, configuration, and validation.
 
-Common functionality belongs in reusable components instead of being copied between tests.
+### Reusability
 
-### Separate responsibilities
+Common functionality such as browser management, API communication, test
+data generation, logging, and validation is centralized.
 
-Pages handle UI interactions.
+### Debuggability
 
-API classes handle API operations.
+A failure should provide enough information to understand what happened
+without immediately reproducing it.
 
-Flows handle business workflows.
+This is supported through:
 
-Utilities handle common framework functionality.
+-   Logs
+-   Screenshots
+-   Videos
+-   Traces
+-   Allure reports
+-   API response attachments
 
-### Make failures easier to investigate
+### Separation of Concerns
 
-Logs, screenshots, traces and Allure attachments should provide enough information to understand a failed execution.
+Tests describe **what** should be validated.
 
-### Build incrementally
+Flows describe **business workflows**.
 
-The framework is intentionally being built in phases. I prefer adding an abstraction when there is a real need for it rather than creating a large framework upfront.
+Page objects describe **UI interactions**.
 
----
+API classes describe **API operations**.
+
+The API client handles **HTTP communication**.
+
+------------------------------------------------------------------------
 
 # Roadmap
 
-### Completed
+## Completed
 
-* [x] Framework setup
-* [x] UI automation with Playwright
-* [x] Page Object Model
-* [x] Cross-browser support
-* [x] Browser Factory
-* [x] Configuration management
-* [x] Centralized logging
-* [x] Automatic screenshots on failure
-* [x] API automation
-* [x] API CRUD operations
-* [x] API chaining
-* [x] Test data factories
-* [x] CSV / Excel test data support
-* [x] JSON Schema validation
-* [x] HTTP / Business / Contract validation
-* [x] Allure reporting
-* [x] Allure steps and metadata
-* [x] API response attachments
-* [x] Execution artifact management
+-   [x] Framework setup
+-   [x] Playwright UI automation
+-   [x] Page Object Model
+-   [x] Cross-browser support
+-   [x] Browser Factory
+-   [x] Configuration management
+-   [x] Centralized logging
+-   [x] Failure screenshots
+-   [x] Playwright traces and video capture
+-   [x] API automation
+-   [x] API CRUD operations
+-   [x] API chaining
+-   [x] Test data factories
+-   [x] CSV / Excel / JSON test data support
+-   [x] JSON Schema validation
+-   [x] HTTP / Business / Contract validation
+-   [x] Allure reporting
+-   [x] Allure steps
+-   [x] API response attachments
+-   [x] Execution artifact management
+-   [x] GitHub Actions CI/CD
+-   [x] Allure reporting in CI
+-   [x] CI artifact management
+-   [x] Environment variables in CI
+-   [x] Parallel execution with pytest-xdist
 
-### Next
+## Next
 
-* [ ] GitHub Actions CI/CD
-* [ ] Allure reporting in CI
-* [ ] CI artifact management
-* [ ] Environment variables and secrets in CI
-* [ ] Parallel execution
-* [ ] Docker integration
-* [ ] Database testing
-* [ ] Performance testing
-* [ ] Security testing
-* [ ] AI-assisted test generation and maintenance
+-   [ ] Docker integration
+-   [ ] Database testing
+-   [ ] Performance testing
+-   [ ] Security testing
+-   [ ] AI-assisted test generation and maintenance
 
----
+------------------------------------------------------------------------
 
 # Contributing
 
-This is primarily a personal/portfolio project, but suggestions and issues are welcome.
+This is primarily a personal/portfolio project, but suggestions and
+issues are welcome.
 
-If you see something that could make the framework cleaner, more maintainable or more reusable, feel free to open an issue or pull request.
+If you identify an improvement in architecture, maintainability,
+reliability, or test coverage, feel free to open an issue or pull
+request.
 
----
+------------------------------------------------------------------------
 
 # Contact
 
-**Priya**
+**Priya**\
 Senior Software Development Engineer in Test (SDET)
 
-Automation | Playwright | Python | API Testing
+Automation \| Playwright \| Python \| API Testing
 
-* LinkedIn: [https://www.linkedin.com/in/priya-bhagoriya/](https://www.linkedin.com/in/priya-bhagoriya/)
-* GitHub: [https://github.com/Priya123z](https://github.com/Priya123z)
+-   LinkedIn: https://www.linkedin.com/in/priya-bhagoriya/
+-   GitHub: https://github.com/Priya123z
 
----
+------------------------------------------------------------------------
 
 # License
 
 MIT
-
----
