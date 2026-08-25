@@ -32,7 +32,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t automationexercise-tests .
-      
+
       - name: Run tests in Docker
         run: |
           docker run --rm \
@@ -43,8 +43,10 @@ jobs:
             -e BROWSER="${BROWSER}" \
             -e DEFAULT_TIMEOUT="${DEFAULT_TIMEOUT}" \
             -e EXPECT_TIMEOUT="${EXPECT_TIMEOUT}" \
-            -v "${{ github.workspace }}/allure-results:/app/allure-results"automationexercise-tests pytest -q --alluredir=/app/allure-results
-
+            -v "${{ github.workspace }}/allure-results:/app/allure-results" \
+            automationexercise-tests \
+            pytest -q --alluredir=/app/allure-results
+          
 
       - name: Upload Allure results
         if: always()
@@ -68,4 +70,3 @@ jobs:
         with:
           name: allure-report
           path: allure-report/
-
