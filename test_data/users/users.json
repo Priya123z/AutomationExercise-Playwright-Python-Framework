@@ -18,5 +18,25 @@
         "city": "Port Benjamin",
         "zipcode": "55959",
         "mobile_number": "429.231.4557x79747"
+    },
+    {
+        "title": "Mr",
+        "email": "khill_20260825100828@example.com",
+        "password": "E1cLXJ4i^*",
+        "date_of_birth": "27",
+        "months_of_birth": "11",
+        "years_of_birth": "1971",
+        "newsletter": true,
+        "special_offers": false,
+        "first_name": "Nicole",
+        "last_name": "Williams",
+        "company": "Howell, Rodriguez and Williamson",
+        "address_one": "63878 Gabrielle Highway Suite 031",
+        "address_two": "Suite 470",
+        "country": "United States",
+        "state": "New Hampshire",
+        "city": "West Jonathan",
+        "zipcode": "39913",
+        "mobile_number": "533-560-2528"
     }
 ]
