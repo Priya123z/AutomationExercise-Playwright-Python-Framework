@@ -45,7 +45,7 @@ jobs:
             -e EXPECT_TIMEOUT="${EXPECT_TIMEOUT}" \
             -v "${{ github.workspace }}/allure-results:/app/allure-results" \
             automationexercise-tests \
-            pytest -q --alluredir=/app/allure-results
+            pytest -n 2 -q --alluredir=/app/allure-results
           
 
       - name: Upload Allure results
