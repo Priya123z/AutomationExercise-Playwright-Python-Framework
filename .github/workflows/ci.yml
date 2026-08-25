@@ -44,8 +44,8 @@ jobs:
           playwright install --with-deps chromium
 
       - name: Run tests
-        run: |
-          pytest -q --alluredir=allure-results
+        run: | 
+          pytest -n 2 -q --alluredir=allure-results
 
       - name: Upload Allure results
         if: always()
