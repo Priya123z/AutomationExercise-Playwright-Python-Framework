@@ -129,6 +129,10 @@ def authenticated_page(authenticated_context):
 # -------------------------
 
 
+def pytest_configure(config):
+    config.option.htmlpath = str(artifact.html_report)
+    config.option.allure_report_dir = str(artifact.allure_results_dir)
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
 
