@@ -44,9 +44,16 @@ jobs:
             -e DEFAULT_TIMEOUT="${DEFAULT_TIMEOUT}" \
             -e EXPECT_TIMEOUT="${EXPECT_TIMEOUT}" \
             -v "${{ github.workspace }}/allure-results:/app/allure-results" \
+            -v "${{ github.workspace }}/artifacts:/app/artifacts" \
             automationexercise-tests \
             pytest -n 2 -q --alluredir=/app/allure-results
-          
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: artifacts/
 
       - name: Upload Allure results
         if: always()
