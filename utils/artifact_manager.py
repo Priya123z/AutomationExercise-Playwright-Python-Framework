@@ -29,9 +29,10 @@ class ArtifactManager:
 
     def _create_sub_directories(self):
         for folder in self._ARTIFACT_TYPES:
-            path = self.execution_dir/folder
+            path = self.execution_dir / folder
             path.mkdir(parents=True, exist_ok=True)
-            setattr(self, f"{folder}_dir", path)
+            attribute_name = folder.replace("-", "_") + "_dir"
+            setattr(self, attribute_name, path)
 
     @property
     def html_report(self):
