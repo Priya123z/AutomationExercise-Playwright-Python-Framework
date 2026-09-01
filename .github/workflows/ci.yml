@@ -43,10 +43,40 @@ jobs:
             -e BROWSER="${BROWSER}" \
             -e DEFAULT_TIMEOUT="${DEFAULT_TIMEOUT}" \
             -e EXPECT_TIMEOUT="${EXPECT_TIMEOUT}" \
-            -v "${{ github.workspace }}/allure-results:/app/allure-results" \
             -v "${{ github.workspace }}/artifacts:/app/artifacts" \
             automationexercise-tests \
-            pytest -n 2 -q --alluredir=/app/allure-results
+            pytest -n 2 -q
+
+      - name: Show generated artifacts
+        if: always()
+        run: |
+          echo "===== Artifact Directory ====="
+          find artifacts -maxdepth 4 -type f | sort
+
+      - name: Install Allure
+        if: always()
+        run: |
+          npm install -g allure-commandline
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          ALLURE_RESULTS_DIR=$(find artifacts -type d -name "allure-results" -print -quit)
+
+          if [ -z "$ALLURE_RESULTS_DIR" ]; then
+            echo "ERROR: Allure results directory not found"
+            exit 1
+          fi
+
+          echo "Allure results found at: $ALLURE_RESULTS_DIR"
+
+          ALLURE_REPORT_DIR="$(dirname "$ALLURE_RESULTS_DIR")/allure-report"
+
+          echo "Generating Allure report at: $ALLURE_REPORT_DIR"
+
+          allure generate "$ALLURE_RESULTS_DIR" \
+            -o "$ALLURE_REPORT_DIR" \
+            --clean
 
       - name: Upload test artifacts
         if: always()
@@ -55,25 +85,9 @@ jobs:
           name: test-artifacts
           path: artifacts/
 
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results/
-
-      - name: Install Allure
-        if: always()
-        run: npm install -g allure-commandline
-
-      - name: Generate Allure Report
-        if: always()
-        run: |
-          allure generate allure-results -o allure-report --clean
-
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: allure-report/
+          path: artifacts/*/allure-report/
