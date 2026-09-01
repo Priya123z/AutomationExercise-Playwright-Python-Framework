@@ -133,16 +133,23 @@ def authenticated_page(authenticated_context):
 def pytest_runtest_makereport(item, call):
 
     outcome = yield
-
     report = outcome.get_result()
 
     if report.when == "call" and report.failed:
 
-        page = item.funcargs.get("page")
+        page = (
+            item.funcargs.get("page")
+            or item.funcargs.get("authenticated_page")
+        )
 
         if page:
-
             Screenshot.capture(page, item.name)
+
+            logger.error(
+                f"Test failed: {item.nodeid}. "
+                f"Screenshot captured: {item.name}"
+            )
+
 
 def pytest_addoption(parser):
     parser.addoption("--browser",action="store",default=None,help="Browser to execute tests: chromium, firefox, webkit")
