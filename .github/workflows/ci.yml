@@ -47,6 +47,17 @@ jobs:
             automationexercise-tests \
             pytest -n 2 -q
 
+      - name: Fix artifact permissions
+        if: always()
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" artifacts
+
+      - name: Verify artifact ownership
+        if: always()
+        run: |
+          echo "===== Artifact Permissions ====="
+          find artifacts -maxdepth 2 -type d -exec ls -ld {} \;
+
       - name: Show generated artifacts
         if: always()
         run: |
