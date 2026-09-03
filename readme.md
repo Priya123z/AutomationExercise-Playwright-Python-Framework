@@ -9,7 +9,7 @@ Published by CI on every commit: 30 tests, per-step detail, trend history across
 runs, and screenshots and traces on the failures.
 
 [![Tests](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Playwright](https://img.shields.io/badge/playwright-1.61-45ba4b)
 ![Tests](https://img.shields.io/badge/tests-30-brightgreen)
 
@@ -528,7 +528,8 @@ locally.
 
 ## Prerequisites
 
--   Python 3.10+
+-   Python 3.11 or newer — `api/api_client.py` uses `enum.StrEnum`, which is a
+    3.11 addition. CI and the Docker image run 3.12.
 -   pip
 -   Git
 -   Playwright
