@@ -1,6 +1,7 @@
 """Turn a JUnit XML file into a markdown summary for the job summary and PR comment."""
 
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -41,7 +42,18 @@ def collect(path):
     }
 
 
-def render(result):
+def reruns_from(log_path):
+    """UI tests are retried. A suite that retries quietly is a suite that hides
+    flakiness, so the count goes in the summary. JUnit records only the final
+    outcome, so this comes from pytest's own terminal line."""
+    if not log_path or not Path(log_path).exists():
+        return 0
+
+    match = re.search(r"(\d+) rerun", Path(log_path).read_text())
+    return int(match.group(1)) if match else 0
+
+
+def render(result, reruns=0):
     icon = "green_circle" if not result["failed"] else "red_circle"
 
     lines = [
@@ -52,6 +64,14 @@ def render(result):
         "|---:|---:|---:|---:|",
         f"| {result['passed']} | {result['failed']} | {result['skipped']} | {result['total']} |",
     ]
+
+    if reruns:
+        lines += [
+            "",
+            f"_{reruns} test{'s' if reruns > 1 else ''} passed on a retry._ "
+            "UI tests get two attempts, because the practice site under test "
+            "intermittently answers with nothing at all.",
+        ]
 
     if result["problems"]:
         lines += ["", "**Failures**", ""]
@@ -65,11 +85,12 @@ def render(result):
 
 def main():
     path = Path(sys.argv[1])
+    log = sys.argv[3] if len(sys.argv) > 3 else None
 
     if not path.exists():
         body = ":red_circle: **The suite produced no results.** The run probably failed before tests started.\n"
     else:
-        body = render(collect(path))
+        body = render(collect(path), reruns_from(log))
 
     print(body)
 
