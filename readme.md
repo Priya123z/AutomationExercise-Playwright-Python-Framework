@@ -37,6 +37,51 @@ The goal is to build automation that is:
 
 ------------------------------------------------------------------------
 
+## If you have five minutes
+
+This README is long because the framework is documented properly. If you are
+evaluating it rather than using it, here is the short path.
+
+**Open the [live report](https://priya123z.github.io/AutomationExercise-Playwright-Python-Framework/) first.** Thirty tests, published by CI, with
+per-step detail and trend history. It is the output; everything below is how it
+gets made.
+
+**Then read three files, in this order:**
+
+| File | Why this one |
+|---|---|
+| [`tests/UI/test_login.py`](tests/UI/test_login.py) | What a test looks like here: nineteen lines, no selectors, no waits, no URLs. Just intent and one assertion. If this reads clearly, the layering is doing its job. |
+| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives — HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
+| [`conftest.py`](conftest.py) | Every fixture and hook, including the parts that are not obvious: an account created over the API per test instead of read from committed data, a preflight that skips with a reason when the site blocks CI, and reruns applied to UI tests only. |
+
+**Then, if you want the interesting part:** the three bugs in
+[Artifacts, and one bug worth reading about](#artifacts-and-one-bug-worth-reading-about)
+and [Known issues](#known-issues). The first is a genuine parallel-execution
+defect that could publish half a test run as though it were the whole thing, and
+it is the kind of thing that only shows up when you look.
+
+## Who this is worth reading
+
+- **Starting a Playwright and Python suite** and wanting a layout that will not
+  need rewriting at fifty tests. Copy the layering: test to flow to page or API
+  client, one direction only.
+- **Deciding how to report results.** The Allure-to-Pages setup with trend
+  history and PR comments is here in full, in
+  [`.github/workflows/ci.yml`](.github/workflows/ci.yml), and it is the part
+  people usually skip.
+- **Running browser tests in Docker on a hosted runner.** The image runs as an
+  arbitrary uid because GitHub runners are 1001 and images are usually built as
+  1000, which is a mistake worth not repeating.
+- **Testing against a public site you do not control.** Cloudflare challenges
+  datacenter addresses, so the suite checks once and skips with a reason rather
+  than publishing twenty failures nobody can act on.
+
+**What this is not.** It tests a public practice site, so the test data is not
+production-shaped and there is no database to seed. The value is the framework
+around the tests, not the coverage of automationexercise.com.
+
+------------------------------------------------------------------------
+
 ## Tech Stack
 
 -   **Python** - Core programming language
