@@ -1,18 +1,18 @@
 [project]
-name = "orangehrm-playwright-python"
+name = "automationexercise-playwright-python-framework"
 version = "0.1.0"
-requires-python = ">=3.14"
+description = "UI and API test automation framework for automationexercise.com, built with Playwright and Pytest."
+requires-python = ">=3.10"
 dependencies = [
+    "allure-pytest>=2.16.0",
     "allure-python-commons>=2.16.0",
-    "components>=0.0.1a0",
     "faker>=40.36.0",
-    "file-path>=0.3.1",
     "jsonschema>=4.26.0",
     "loguru>=0.7.3",
     "openpyxl>=3.1.5",
-    "page>=0.3",
     "playwright>=1.61.0",
-    "pytest>=9.1.1",
+    "pytest>=8.2",
     "pytest-html>=4.2.0",
+    "pytest-xdist>=3.8.0",
     "python-dotenv>=1.2.2",
 ]

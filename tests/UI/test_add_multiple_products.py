@@ -1,6 +1,10 @@
+import pytest
+
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.cart
 def test_add_multiple_products(page):
     home = HomePage(page)
     products = home.navbar.open_product()

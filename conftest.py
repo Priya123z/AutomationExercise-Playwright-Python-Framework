@@ -14,9 +14,10 @@ from utils.factories.browser_factory import BrowserFactory
 from utils.file_utils import FileUtils
 from utils.logger import logger
 from utils.screenshot import Screenshot
-from utils.config_manager import config
+from utils.config_manager import config as framework_config
 from api.api_client import APIClient
 from api.auth_api import AuthAPI
+from api.dummyjson_auth_api import DummyJsonAuthAPI
 from utils.test_data import TestData
 from flows.API_Flow.product_flow import ProductFlow
 
@@ -38,7 +39,7 @@ def playwright():
 @pytest.fixture(scope="session")
 def browser(playwright):
     # auth.clear_all_storage_states()
-    browser = BrowserFactory.create_browser(playwright=playwright, config=config)
+    browser = BrowserFactory.create_browser(playwright=playwright, config=framework_config)
     yield browser
     logger.info("Closing Browser")
     browser.close()
@@ -48,7 +49,7 @@ def browser(playwright):
 def context(browser,request):
     logger.info("Creating Browser Context with tracing and video recording enabled")
     browser_context = browser.new_context(record_video_dir = artifact.videos_dir)
-    browser_context.route("**/*",block_ads)
+    route_ads(browser_context)
     browser_context.tracing.start(screenshots=True, snapshots=True)
     yield browser_context
     logger.info("Closing Browser Context")
@@ -62,7 +63,7 @@ def context(browser,request):
 
 def _create_page(context):
     page = context.new_page()
-    page.goto(config.base_url)
+    page.goto(framework_config.base_url)
     return page
 
 
@@ -93,7 +94,7 @@ def authenticated_context(browser, request):
 
     context = browser.new_context(storage_state=storage_state,record_video_dir=artifact.videos_dir)
 
-    context.route("**/*",block_ads)
+    route_ads(context)
 
     context.tracing.start(screenshots=True,snapshots=True)
 
@@ -130,6 +131,14 @@ def authenticated_page(authenticated_context):
 
 
 def pytest_configure(config):
+    try:
+        framework_config.configure(
+            env=config.getoption("--environment"),
+            browser=config.getoption("--browser"),
+        )
+    except (ValueError, FileNotFoundError) as exc:
+        raise pytest.UsageError(str(exc))
+
     config.option.htmlpath = str(artifact.html_report)
     config.option.allure_report_dir = str(artifact.allure_results_dir)
 
@@ -175,12 +184,12 @@ def automation_exercise_api_client(playwright):
     logger.info("Creating Automation Exercise API request context")
 
     request_context = playwright.request.new_context(
-        base_url=config.api_base_url,
+        base_url=framework_config.api_base_url,
     )
 
     client = APIClient(
         request_context,
-        config.api_base_url,
+        framework_config.api_base_url,
     )
 
     yield client
@@ -199,12 +208,12 @@ def dummyjson_api_client(playwright):
     logger.info("Creating DummyJSON API request context")
 
     request_context = playwright.request.new_context(
-        base_url=config.dummyjson_api_base_url,
+        base_url=framework_config.dummyjson_api_base_url,
     )
 
     client = APIClient(
         request_context,
-        config.dummyjson_api_base_url,
+        framework_config.dummyjson_api_base_url,
     )
 
     yield client
@@ -219,7 +228,7 @@ def auth_api(automation_exercise_api_client):
 
 @pytest.fixture(scope="session")
 def dummyjson_auth_api(dummyjson_api_client):
-    return AuthAPI(dummyjson_api_client)
+    return DummyJsonAuthAPI(dummyjson_api_client)
 
 @pytest.fixture(scope="session")
 def dummyjson_product_api(dummyjson_api_client):
@@ -268,17 +277,17 @@ AD_DOMAINS = [
     "doubleclick.net",
     "googlesyndication.com",
     "googleadservices.com",
-    "googleads.g.doubleclick.net",
     "adservice.google.com",
-    "pagead2.googlesyndication.com",
 ]
 
-def block_ads(route):
-    url = route.request.url.lower()
 
-    if any(domain in url for domain in AD_DOMAINS):
-        logger.info(f"BLOCKED AD REQUEST: {url}")
-        route.abort()
-    else:
-        route.continue_()
+def block_ads(route):
+    route.abort()
+
+
+def route_ads(browser_context):
+    # One glob per ad domain instead of routing "**/*" through Python. Matching stays in
+    # the browser, so only requests we actually intend to block cross the boundary.
+    for domain in AD_DOMAINS:
+        browser_context.route(f"**/*{domain}/**", block_ads)
 

@@ -1,3 +1,7 @@
+import pytest
+
+@pytest.mark.api
+@pytest.mark.products
 def test_update_product(dummyjson_product_api, update_product_request):
 
     product_id = 1
