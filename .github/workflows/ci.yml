@@ -1,4 +1,4 @@
-name: Playwright Automation Tests
+name: Tests
 
 on:
   push:
@@ -11,15 +11,28 @@ on:
       - main
       - develop
 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    name: Run Automation Tests in Docker
+    name: UI and API suite
     runs-on: ubuntu-latest
 
     env:
-      BASE_URL: ${{ vars.BASE_URL }}
-      API_BASE_URL: ${{ vars.API_BASE_URL }}
-      DUMMYJSON_API_BASE_URL: ${{ vars.DUMMYJSON_API_BASE_URL }}
+      # The framework names its artifacts folder after this, so the workflow knows the
+      # path up front instead of searching for it afterwards.
+      TEST_EXECUTION_ID: run-${{ github.run_id }}-${{ github.run_attempt }}
+      BASE_URL: ${{ vars.BASE_URL || 'https://automationexercise.com/' }}
+      API_BASE_URL: ${{ vars.API_BASE_URL || 'https://automationexercise.com/api' }}
+      DUMMYJSON_API_BASE_URL: ${{ vars.DUMMYJSON_API_BASE_URL || 'https://dummyjson.com' }}
       HEADLESS: "true"
       BROWSER: "chromium"
       DEFAULT_TIMEOUT: "10000"
@@ -29,76 +42,115 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: |
-          docker build -t automationexercise-tests .
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Run tests in Docker
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: automationexercise-tests:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run tests
+        id: tests
+        continue-on-error: true
         run: |
+          mkdir -p artifacts
           docker run --rm \
-            -e BASE_URL="${BASE_URL}" \
-            -e API_BASE_URL="${API_BASE_URL}" \
-            -e DUMMYJSON_API_BASE_URL="${DUMMYJSON_API_BASE_URL}" \
-            -e HEADLESS="${HEADLESS}" \
-            -e BROWSER="${BROWSER}" \
-            -e DEFAULT_TIMEOUT="${DEFAULT_TIMEOUT}" \
-            -e EXPECT_TIMEOUT="${EXPECT_TIMEOUT}" \
+            -e TEST_EXECUTION_ID \
+            -e BASE_URL -e API_BASE_URL -e DUMMYJSON_API_BASE_URL \
+            -e HEADLESS -e BROWSER -e DEFAULT_TIMEOUT -e EXPECT_TIMEOUT \
             -v "${{ github.workspace }}/artifacts:/app/artifacts" \
-            automationexercise-tests \
-            pytest -n 2 -q
+            automationexercise-tests:${{ github.sha }} \
+            pytest -n 2 -q --junitxml=/app/artifacts/${TEST_EXECUTION_ID}/junit.xml
 
-      - name: Fix artifact permissions
+      - name: Summarise results
         if: always()
-        run: |
-          sudo chown -R "$(id -u):$(id -g)" artifacts
+        id: summary
+        run: python3 .github/scripts/summarise_results.py "artifacts/${TEST_EXECUTION_ID}/junit.xml"
 
-      - name: Verify artifact ownership
+      - name: Restore Allure history
         if: always()
+        continue-on-error: true
         run: |
-          echo "===== Artifact Permissions ====="
-          find artifacts -maxdepth 2 -type d -exec ls -ld {} \;
+          # Trends only exist if the previous report's history folder is carried forward.
+          git clone --branch gh-pages --depth 1 \
+            "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" \
+            gh-pages 2>/dev/null || exit 0
 
-      - name: Show generated artifacts
-        if: always()
-        run: |
-          echo "===== Artifact Directory ====="
-          find artifacts -maxdepth 4 -type f | sort
-
-      - name: Install Allure
-        if: always()
-        run: |
-          npm install -g allure-commandline
-
-      - name: Generate Allure Report
-        if: always()
-        run: |
-          ALLURE_RESULTS_DIR=$(find artifacts -type d -name "allure-results" -print -quit)
-
-          if [ -z "$ALLURE_RESULTS_DIR" ]; then
-            echo "ERROR: Allure results directory not found"
-            exit 1
+          SOURCE="gh-pages/history"
+          if [ -n "${{ github.event.number }}" ]; then
+            SOURCE="gh-pages/pr-${{ github.event.number }}/history"
+            [ -d "$SOURCE" ] || SOURCE="gh-pages/history"
           fi
 
-          echo "Allure results found at: $ALLURE_RESULTS_DIR"
+          if [ -d "$SOURCE" ]; then
+            cp -r "$SOURCE" "artifacts/${TEST_EXECUTION_ID}/allure-results/history"
+            echo "Carried forward $(ls "$SOURCE" | wc -l) history files"
+          fi
 
-          ALLURE_REPORT_DIR="$(dirname "$ALLURE_RESULTS_DIR")/allure-report"
+      - name: Generate Allure report
+        if: always()
+        run: |
+          npm install -g allure-commandline --silent
+          allure generate "artifacts/${TEST_EXECUTION_ID}/allure-results" \
+            -o "artifacts/${TEST_EXECUTION_ID}/allure-report" --clean
 
-          echo "Generating Allure report at: $ALLURE_REPORT_DIR"
+      - name: Publish report
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: artifacts/${{ env.TEST_EXECUTION_ID }}/allure-report
+          destination_dir: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || '.' }}
+          keep_files: true
+          user_name: Priya Bhagoriya
+          user_email: prbhagoriya20@gmail.com
+          commit_message: "Publish report for ${{ github.sha }}"
 
-          allure generate "$ALLURE_RESULTS_DIR" \
-            -o "$ALLURE_REPORT_DIR" \
-            --clean
+      - name: Comment on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.number }}/
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8')
+              + `\n\n[Open the full Allure report](${process.env.REPORT_URL})\n`
+              + '\n<!-- automation-test-report -->';
 
-      - name: Upload test artifacts
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes('<!-- automation-test-report -->'));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body,
+              });
+            }
+
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
           path: artifacts/
+          retention-days: 14
 
-      - name: Upload Allure Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: artifacts/*/allure-report/
+      - name: Fail if tests failed
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
