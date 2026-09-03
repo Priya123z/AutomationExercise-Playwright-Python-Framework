@@ -2,7 +2,7 @@ from __future__ import annotations
 import platform
 from pathlib import Path
 import pytest
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 from api.product_api import ProductAPI
 from flows.API_Flow.auth_flow import AuthFlow
 from flows.API_Flow.auth_negative_flow import AuthNegativeFlow
@@ -12,6 +12,7 @@ from models.DummyJsonAPIModels.update_product_request import UpdateProductReques
 from utils.artifact_manager import artifact
 from utils.authentication.authentication_manager import auth
 from utils.factories.browser_factory import BrowserFactory
+from utils.factories.user_factory import UserFactory
 from utils.file_utils import FileUtils
 from utils.logger import logger
 from utils.screenshot import Screenshot
@@ -140,6 +141,12 @@ def pytest_configure(config):
     except (ValueError, FileNotFoundError) as exc:
         raise pytest.UsageError(str(exc))
 
+    # Four expect() calls did not pass a timeout, so they used Playwright's 5s
+    # default while the rest of the framework waited the configured 20s. Against a
+    # slow public site that is the difference between a pass and a flake. Setting
+    # it once means a new call site cannot get this wrong.
+    expect.set_options(timeout=framework_config.expect_timeout)
+
     config.option.htmlpath = str(artifact.html_report)
     config.option.allure_report_dir = str(artifact.allure_results_dir)
 
@@ -185,6 +192,17 @@ def pytest_runtest_makereport(item, call):
                 f"Test failed: {item.nodeid}. "
                 f"Screenshot captured: {item.name}"
             )
+
+
+def pytest_collection_modifyitems(config, items):
+    # The UI tests drive a public practice site. Under parallel load it sometimes
+    # answers a checkout click with neither the address page nor the register
+    # prompt, and no wait fixes that because nothing is coming. Those get two
+    # retries. API tests get none, and a real regression still fails every
+    # attempt, so this hides flakiness in the target rather than in this code.
+    for item in items:
+        if "ui" in item.keywords:
+            item.add_marker(pytest.mark.flaky(reruns=2, reruns_delay=3))
 
 
 def pytest_addoption(parser):
@@ -268,6 +286,31 @@ def auth_flow(auth_api):
 @pytest.fixture
 def auth_negative_flow(auth_api,auth_flow):
     return AuthNegativeFlow(auth_api,auth_flow)
+
+
+@pytest.fixture
+def registered_user(auth_api):
+    """A real account, created over the API and removed afterwards.
+
+    The UI login tests used to read six accounts out of test_data/users/users.json
+    and expect them to exist on the site. They are accounts on a shared public
+    practice app, so they get deleted or reset by other people and the tests fail
+    for reasons that have nothing to do with this code. Creating the account the
+    test needs takes one API call and always works.
+    """
+    user = UserFactory.create()
+
+    response, body = auth_api.register(user)
+    assert response.status == 200, f"could not create the test account: {response.text()}"
+    assert body.responseCode == 201, body.message
+
+    yield user
+
+    # Leave the practice site as we found it.
+    try:
+        auth_api.delete_user(user)
+    except Exception as exc:
+        logger.warning(f"could not delete {user.email}: {exc}")
 
 
 # -------------------------

@@ -1,28 +1,19 @@
-from pathlib import Path
 import pytest
-from models.AutomationExercise_UI_API_Models.user import User
-from pages.home_page import HomePage
-from utils.test_data import TestData
 import allure
 
-filepath = Path(__file__).parent.parent.parent.resolve()
+from pages.home_page import HomePage
 
-users = TestData.load(filepath /"test_data/users/users.json", model=User)
-# users -> list[User]
 
 @allure.title("Login with valid credentials")
-@allure.description("Verify that a user can successfully login with valid details.")
+@allure.description("Verify that a registered user can log in with valid details.")
 @allure.feature("Authentication")
-
 @pytest.mark.ui
 @pytest.mark.auth
 @pytest.mark.smoke
-@pytest.mark.parametrize("user",users)
-def test_login_user(page, user):
-
+def test_login_user(page, registered_user):
     home = HomePage(page)
+
     signup_login = home.navbar.open_signup_login()
-    signup_login.login(user.email, user.password)
+    signup_login.login(registered_user.email, registered_user.password)
 
-
-
+    assert home.user_logged_in()

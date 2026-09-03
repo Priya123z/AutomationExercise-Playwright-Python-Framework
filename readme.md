@@ -1,13 +1,20 @@
-# Automation Exercise - Playwright Python Framework
+# AutomationExercise Playwright Python Framework
 
-A scalable UI and API automation framework built with **Playwright and
-Python**.
+UI and API test automation for [automationexercise.com](https://automationexercise.com),
+built with Playwright and Pytest, running in Docker on GitHub Actions.
 
-What started as a collection of automation scripts gradually evolved
-into a maintainable framework as the project grew in size and
-complexity. This repository focuses on scalability, reusability, clean
-architecture, reliable test execution, and useful diagnostics rather
-than simply automating test cases.
+### [→ Open the live report](https://priya123z.github.io/AutomationExercise-Playwright-Python-Framework/)
+
+Published by CI on every commit: 30 tests, per-step detail, trend history across
+runs, and screenshots and traces on the failures.
+
+[![Tests](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Playwright](https://img.shields.io/badge/playwright-1.61-45ba4b)
+![Tests](https://img.shields.io/badge/tests-30-brightgreen)
+
+Every pull request gets a comment with the pass/fail counts and a link to its own
+copy of the report, published under `pr-<number>/`.
 
 ------------------------------------------------------------------------
 
@@ -410,15 +417,22 @@ The framework is integrated with **GitHub Actions**.
 
 The CI workflow currently performs:
 
-1.  Checkout of the repository
-2.  Python environment setup
-3.  Dependency installation
-4.  Playwright browser installation
-5.  Parallel test execution
-6.  Allure result generation
-7.  Allure HTML report generation
-8.  Upload of Allure results as an artifact
-9.  Upload of the generated Allure HTML report as an artifact
+1.  Checkout
+2.  Docker image build, with layer caching between runs
+3.  Test execution inside the container, two parallel workers
+4.  Result summary written to the job summary
+5.  Allure history restored from the previous publish, so trends accumulate
+6.  Allure report generation
+7.  Publish to GitHub Pages — `main` to the site root, a pull request to `pr-<number>/`
+8.  Pull request comment with the counts and a link to that report
+9.  Artifact upload of the whole run for 14 days
+
+Everything after the test step runs even when tests fail, so a red run still
+publishes a report explaining why. The job then fails on the test outcome.
+
+The container runs as the host uid, so nothing on the mounted volume comes back
+owned by root. The results folder is named from `TEST_EXECUTION_ID`, set by the
+workflow, rather than searched for afterwards — see the note under Artifacts.
 
 The workflow runs for pushes and pull requests targeting the configured
 branches.
@@ -544,14 +558,23 @@ pytest -n 2 -q
 
 ``` bash
 pytest --browser=chromium
-```
-
-or:
-
-``` bash
 pytest --browser=firefox
 pytest --browser=webkit
 ```
+
+Or by environment, which is what CI uses:
+
+``` bash
+BROWSER=firefox pytest -q
+pytest --environment=uat        # qa, uat or prod
+```
+
+Both options were previously accepted and then ignored, because the config
+singleton was built at import time with the environment hardcoded. They take
+effect now, and an unknown value is rejected with a usage error rather than
+silently falling back.
+
+The Docker image installs Chromium only. Run the other two locally.
 
 ------------------------------------------------------------------------
 
@@ -560,8 +583,11 @@ pytest --browser=webkit
 Generate Allure results while running the suite:
 
 ``` bash
-pytest -q --alluredir=allure-results
+pytest -q
 ```
+
+`--alluredir` is not needed: `pytest_configure` points Allure at this run's
+artifacts folder.
 
 Generate and open the interactive report locally:
 
@@ -649,13 +675,125 @@ The API client handles **HTTP communication**.
 -   [x] Environment variables in CI
 -   [x] Parallel execution with pytest-xdist
 
+-   [x] Docker execution in CI
+-   [x] Published Allure report with trend history
+-   [x] Pull request result comments
+-   [x] Marker taxonomy with `--strict-markers`
+
 ## Next
 
--   [ ] Docker integration
 -   [ ] Database testing
 -   [ ] Performance testing
 -   [ ] Security testing
 -   [ ] AI-assisted test generation and maintenance
+
+------------------------------------------------------------------------
+
+# Selecting tests
+
+``` bash
+pytest -m smoke        # 8 of 30, the critical path
+pytest -m api          # 17
+pytest -m ui           # 13
+pytest -m auth         # 13
+pytest -m "ui and cart"
+```
+
+Markers are declared in `pytest.ini` and enforced with `--strict-markers`, so a
+typo in a decorator fails collection instead of silently marking nothing.
+
+Note that `--strict-markers` validates decorators, not `-m` expressions. A typo
+in `-m` deselects everything and exits cleanly — check the collected count.
+
+------------------------------------------------------------------------
+
+# Artifacts, and one bug worth reading about
+
+Each run writes to `artifacts/<execution id>/`:
+
+```
+artifacts/<id>/
++-- allure-results/     raw results, plus environment.properties
++-- allure-report/      generated report
++-- reports/            pytest-html
++-- logs/               framework.log
++-- screenshots/        on failure
++-- traces/             one Playwright trace per test
++-- videos/
++-- auth/               storage state, rebuilt per run
++-- junit.xml
+```
+
+The execution id used to be a per-second timestamp taken when
+`ArtifactManager` was first imported. Under `pytest -n`, every xdist worker is a
+separate process, so two workers starting either side of a second boundary each
+created their own folder — and one of them ended up empty. CI selected a folder
+with `find -print -quit`, which returns directory order rather than the one with
+results in it, so the published report could contain half the run or none of it.
+It reproduced in two of three runs.
+
+The id now comes from `TEST_EXECUTION_ID` in the environment, which every worker
+inherits, and CI sets it up front so it knows the path without searching.
+
+Storage state also lives here rather than in the repository. It is created once
+per run and reused, where previously it was deleted and recreated for every test
+that asked for it, so the optimisation bought nothing.
+
+------------------------------------------------------------------------
+
+# Test accounts
+
+The UI login tests used to read six accounts out of `test_data/users/users.json`
+and expect them to exist on the site, running the same login flow six times with
+different credentials. Those are accounts on a shared public practice app, so
+other people delete them and the site resets, and the tests failed for reasons
+that had nothing to do with this code.
+
+A `registered_user` fixture now creates the account over the API, hands it to the
+test, and deletes it afterwards. One API call, always works, and the site is left
+as it was found. Data-driven parametrisation is still used where the data
+actually changes behaviour — payment details, product ids — rather than to run
+one code path repeatedly.
+
+That is why the suite is 30 tests rather than the 45 it collected before. The
+eighteen removed cases were the same three flows repeated across six accounts,
+which added no distinct assertions.
+
+## Retries
+
+UI tests get two retries, applied in `pytest_collection_modifyitems`. Under
+parallel load the practice site occasionally answers a checkout click with
+neither the address page nor the register prompt, and no amount of waiting fixes
+that because nothing is coming. API tests get none, and a genuine regression
+fails every attempt, so this covers flakiness in the target rather than in this
+code. Reruns are reported in the run summary so they stay visible.
+
+------------------------------------------------------------------------
+
+# Known issues
+
+Being honest about what is still wrong here:
+
+-   `config/credentials.json` holds a plaintext password, and
+    `utils/auth/qa/*.json` holds committed browser session state. Both are in
+    `.gitignore`, but they were committed before that rule existed, so they are
+    still tracked and still in history. They are credentials for a public
+    practice site, not a real system, but they should be purged and rotated.
+-   `allure-2.45.0.tgz`, 30 MB, is committed and used by nothing. CI installs the
+    Allure CLI from npm. It is excluded from the Docker build context but remains
+    in git history.
+-   `.idea/` and `screenshots/` are tracked for the same reason, and `.idea/`
+    leaks a local path.
+-   Removing all of the above needs a history rewrite and a force push, which is
+    a deliberate decision rather than a cleanup.
+-   `uat` and `prod` point at the same URLs as `qa`, because the practice site has
+    only one deployment. They differ in timeouts and headless mode only.
+-   The suite drives a public site. Cloudflare responses and outages will still
+    fail runs for reasons unrelated to this code; retries cover the transient
+    cases, not an outage.
+-   `test_data/users/users.json` is still committed and still read by nothing
+    now that the login tests create their own accounts. It is kept as an example
+    of the reader layer, which does get exercised by the payment data.
 
 ------------------------------------------------------------------------
 
@@ -672,10 +810,10 @@ request.
 
 # Contact
 
-**Priya**\
-Senior Software Development Engineer in Test (SDET)
+**Priya Bhagoriya**\
+SDET / AI Test Engineer
 
-Automation \| Playwright \| Python \| API Testing
+-   Portfolio: https://priya123z.github.io
 
 -   LinkedIn: https://www.linkedin.com/in/priya-bhagoriya/
 -   GitHub: https://github.com/Priya123z

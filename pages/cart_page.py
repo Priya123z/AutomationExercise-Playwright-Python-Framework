@@ -72,8 +72,12 @@ class CartPage(BasePage):
 
         self.click(self._proceed_to_checkout, "Proceed To Checkout")
 
+        # Checkout either lands on the address page (logged in) or opens the register
+        # prompt (not logged in). #checkoutModal is always in the DOM, hidden, so
+        # or_() resolved to it every time and then failed to_be_visible. Matching on
+        # :visible means each side only counts once it is actually on screen.
         checkout_heading = self.page.get_by_role("heading", name ="Address Details")
-        checkout_modal = self.page.locator("#checkoutModal")
+        checkout_modal = self.page.locator("#checkoutModal:visible")
 
         expect(checkout_heading.or_(checkout_modal)).to_be_visible()
 

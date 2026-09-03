@@ -27,3 +27,6 @@ utils/auth/
 
 #screenshots
 screenshots/
+WALKTHROUGH.local.md
+summary.md
+junit.xml
