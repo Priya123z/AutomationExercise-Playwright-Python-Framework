@@ -54,6 +54,7 @@ def browser(playwright):
 def context(browser,request):
     logger.info("Creating Browser Context with tracing and video recording enabled")
     browser_context = browser.new_context(record_video_dir = artifact.videos_dir)
+    _apply_timeouts(browser_context)
     route_ads(browser_context)
     browser_context.tracing.start(screenshots=True, snapshots=True)
     yield browser_context
@@ -64,6 +65,23 @@ def context(browser,request):
     logger.info(trace_path.exists())
     logger.info(trace_path)
     browser_context.close()
+
+
+def _apply_timeouts(context):
+    """Make DEFAULT_TIMEOUT mean something.
+
+    It was read from config, validated, tuned per environment (uat 30s, prod
+    60s) and written into the Allure environment panel — and nothing ever
+    applied it. Every locator action was therefore waiting Playwright's built-in
+    30s, so the report advertised a 10s timeout the run did not use, and a
+    genuine failure took three times longer to surface than it should.
+
+    Setting it on the context covers every page made from it, and every action
+    on those pages: click, fill, wait_for, the lot. expect() is separate and is
+    set once in pytest_configure.
+    """
+    context.set_default_timeout(framework_config.timeout)
+    context.set_default_navigation_timeout(framework_config.timeout)
 
 
 def _create_page(context):
@@ -98,6 +116,8 @@ def authenticated_context(browser, request):
     storage_state = auth.get_storage_state(browser=browser,role="user1")
 
     context = browser.new_context(storage_state=storage_state,record_video_dir=artifact.videos_dir)
+
+    _apply_timeouts(context)
 
     route_ads(context)
 
