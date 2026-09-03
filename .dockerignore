@@ -1,6 +1,7 @@
 .venv/
 .git/
 .github/
+.idea/
 .pytest_cache/
 __pycache__/
 *.pyc
@@ -10,4 +11,8 @@ reports/
 artifacts/
 videos/
 traces/
+screenshots/
 .env
+
+# The Allure CLI is installed from npm in CI, this tarball is not part of the build.
+*.tgz

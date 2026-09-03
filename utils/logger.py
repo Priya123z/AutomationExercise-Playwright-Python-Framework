@@ -1,8 +1,5 @@
 from loguru import logger
-import os
 from utils.artifact_manager import artifact
-
-os.makedirs("logs", exist_ok=True)
 
 logger.remove()
 

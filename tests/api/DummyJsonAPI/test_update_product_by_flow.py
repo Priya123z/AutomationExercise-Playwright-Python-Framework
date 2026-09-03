@@ -1,6 +1,10 @@
+import pytest
+
 from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
 
 
+@pytest.mark.api
+@pytest.mark.products
 def test_update_product_by_flow(product_flow, dummyjson_product_api):
 
     product_id = product_flow.get_product_id()

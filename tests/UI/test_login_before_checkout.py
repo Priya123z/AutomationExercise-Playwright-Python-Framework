@@ -12,6 +12,9 @@ filepath = Path(__file__).parent.parent.parent.resolve()
 
 payments = TestData.load(filepath /"test_data" /"payments" /"payment.json", model=PaymentDetails)
 
+@pytest.mark.ui
+@pytest.mark.checkout
+@pytest.mark.smoke
 @pytest.mark.parametrize("payment_details", payments)
 def test_login_before_checkout(authenticated_page,payment_details):
     home = HomePage(authenticated_page)

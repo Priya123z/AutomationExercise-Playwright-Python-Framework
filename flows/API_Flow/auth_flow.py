@@ -38,7 +38,7 @@ class AuthFlow:
 
         with allure.step("Validating JSON Schema"):
             # 3. Contract Validation
-            SchemaValidator.validate_response(response,"schemas/auth/create_user_schema.json")
+            SchemaValidator.validate_response(response,"auth/create_user_schema.json")
             return user
 
 
@@ -67,7 +67,7 @@ class AuthFlow:
 
         with allure.step("Validating JSON Schema"):
             #3. Contract validation
-            SchemaValidator.validate_response(response,"schemas/auth/login_user_schema.json")
+            SchemaValidator.validate_response(response,"auth/login_user_schema.json")
             return user
 
     @allure.feature("Authentication")
@@ -92,7 +92,7 @@ class AuthFlow:
             assert delete_body.message == "Account deleted!"
 
         with allure.step("Validate JSON schema"):
-            SchemaValidator.validate_response(response,"schemas/auth/delete_user_schema.json")
+            SchemaValidator.validate_response(response,"auth/delete_user_schema.json")
         return user, delete_body
 
 

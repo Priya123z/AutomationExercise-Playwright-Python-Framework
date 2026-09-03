@@ -1,3 +1,8 @@
+import pytest
+
+@pytest.mark.api
+@pytest.mark.auth
+@pytest.mark.smoke
 def test_login(dummyjson_auth_api, login_request):
 
     response = dummyjson_auth_api.login(login_request)

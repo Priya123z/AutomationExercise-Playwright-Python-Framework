@@ -14,6 +14,9 @@ users = TestData.load(filepath /"test_data/users/users.json", model=User)
 @allure.description("Verify that a user can successfully login with valid details.")
 @allure.feature("Authentication")
 
+@pytest.mark.ui
+@pytest.mark.auth
+@pytest.mark.smoke
 @pytest.mark.parametrize("user",users)
 def test_login_user(page, user):
 

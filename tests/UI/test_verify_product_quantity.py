@@ -1,7 +1,11 @@
+import pytest
+
 from models.AutomationExercise_UI_API_Models.cart_product import CartProduct
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.cart
 def test_verify_product_quantity(page):
     home = HomePage(page)
 

@@ -1,6 +1,10 @@
+import pytest
+
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.cart
 def test_remove_product_from_cart(page):
 
     home = HomePage(page)

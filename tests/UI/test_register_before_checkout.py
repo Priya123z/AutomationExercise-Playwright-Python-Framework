@@ -9,6 +9,8 @@ from utils.test_data import TestData
 filepath  = Path(__file__).parent.parent.parent.resolve()
 payments = TestData.load(filepath/"test_data"/"payments"/"payment.json", model=PaymentDetails)
 
+@pytest.mark.ui
+@pytest.mark.checkout
 @pytest.mark.parametrize("payment_details",payments)
 def test_register_before_checkout(page,payment_details):
 

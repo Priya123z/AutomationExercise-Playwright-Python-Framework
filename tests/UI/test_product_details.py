@@ -1,7 +1,11 @@
+import pytest
+
 from models.DummyJsonAPIModels.product import Product
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.products
 def test_product_details(page):
     home = HomePage(page)
 

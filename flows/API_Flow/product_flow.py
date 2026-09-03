@@ -18,6 +18,10 @@ class ProductFlow:
 
         )
 
+        assert response.status == 201
+
+        return response.json()["id"]
+
     def get_product_id(self):
 
         response = self.dummyjson_product_api.get_all_products()

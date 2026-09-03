@@ -1,6 +1,10 @@
+import pytest
+
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.products
 def test_search_product(page):
     home = HomePage(page)
 

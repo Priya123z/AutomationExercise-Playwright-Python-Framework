@@ -7,6 +7,8 @@ from utils.test_data import TestData
 
 filepath = Path(__file__).parent.parent.parent.resolve()
 
+@pytest.mark.ui
+@pytest.mark.auth
 @pytest.mark.parametrize("user",TestData.load(filepath/"test_data"/"users"/"users.json"))
 def test_logout(page,user):
 

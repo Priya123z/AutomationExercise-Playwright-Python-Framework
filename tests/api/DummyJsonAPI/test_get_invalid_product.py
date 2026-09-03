@@ -1,3 +1,8 @@
+import pytest
+
+@pytest.mark.api
+@pytest.mark.products
+@pytest.mark.negative
 def test_get_invalid_product(dummyjson_product_api):
 
     response = dummyjson_product_api.get_product_by_id(999999)

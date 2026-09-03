@@ -7,7 +7,6 @@ from api.endpoints import Endpoints
 from models.AutomationExercise_UI_API_Models.login_response import LoginResponse
 from models.AutomationExercise_UI_API_Models.register_response import RegisterResponse
 from models.AutomationExercise_UI_API_Models.user import User
-from models.DummyJsonAPIModels.login_request import LoginRequest
 from utils.logger import logger
 
 
@@ -15,15 +14,6 @@ class AuthAPI:
 
     def __init__(self, api_client: APIClient):
         self.api_client = api_client
-
-    def login(self, request: LoginRequest):
-
-        logger.info(f"Logging in user: {request.username}")
-
-        return self.api_client.post(
-            endpoint=Endpoints.AUTH_LOGIN,
-            data=asdict(request)
-        )
 
     def register(self, user: User)->tuple[APIResponse, RegisterResponse]:
         payload = {

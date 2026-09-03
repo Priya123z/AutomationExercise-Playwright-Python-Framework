@@ -4,6 +4,7 @@ from pathlib import Path
 from pages.base_page import BasePage
 from pages.signup_login_page.account_created_page import AccountCreatedPage
 from models.AutomationExercise_UI_API_Models.user import User
+from utils.artifact_manager import artifact
 from utils.factories.writer_factory import WriterFactory
 
 file_path = Path(__file__).parent.parent.parent.resolve()
@@ -98,8 +99,11 @@ class SignupPage(BasePage):
         self._click_create_account()
         account_created_page = AccountCreatedPage(self.page)
         account_created_page.is_loaded()
-        writer = WriterFactory.get_writer(file_path/"test_data"/"users"/"users.json")
-        writer.append(file_path/"test_data"/"users"/ "users.json", user)
+        # Record accounts this run created on the live site. This used to append to
+        # test_data/users/users.json, which meant every run grew the seed data, changed
+        # the collected test count and left the working tree dirty.
+        created_users = artifact.execution_dir / "registered_users.json"
+        WriterFactory.get_writer(created_users).append(created_users, user)
         return account_created_page
 
     def is_loaded(self):

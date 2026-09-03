@@ -15,6 +15,8 @@ payments = TestData.load(filepath/"test_data"/"payments"/"payment.json", model=P
 # payments -> list[PaymentDetails]
 
 
+@pytest.mark.ui
+@pytest.mark.checkout
 @pytest.mark.parametrize("user", users)
 @pytest.mark.parametrize("payment_details", payments)
 def test_register_while_checkout(page,user,payment_details):

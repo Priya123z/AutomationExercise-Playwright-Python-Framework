@@ -4,6 +4,7 @@ from playwright.sync_api import Page, expect, Locator
 from loguru import logger
 
 from utils.config_manager import config
+from utils.screenshot import Screenshot
 
 
 class BasePage:
@@ -18,8 +19,12 @@ class BasePage:
             logger.info(f"Successfully completed {operation} on {description}")
             return result
         except Exception as e:
-            logger.exception(f"Failed {operation} on {description}")
-            self.screenshot(f"Failed {operation}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            logger.exception(f"Failed {operation} on {description} [{locator}]")
+            # Actions nest, so the same exception passes through here more than once.
+            # Capture the first (innermost) failure only.
+            if not getattr(e, "_screenshot_taken", False):
+                self.screenshot(f"Failed {operation}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                e._screenshot_taken = True
             raise
 
     def click(self, locator:Locator,description:str):
@@ -95,7 +100,7 @@ class BasePage:
 
     def screenshot(self, name: str):
         logger.info(f"Saving screenshot {name}")
-        self.page.screenshot(path=f"screenshots/{name}.png")
+        Screenshot.capture(self.page, name)
 
     def wait_for_url_pattern(self,pattern:str,description:str):
 

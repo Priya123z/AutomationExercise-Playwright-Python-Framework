@@ -1,7 +1,12 @@
+import pytest
+
 from models.AutomationExercise_UI_API_Models.cart_product import CartProduct
 from pages.home_page import HomePage
 
 
+@pytest.mark.ui
+@pytest.mark.cart
+@pytest.mark.smoke
 def test_add_product_to_cart(page):
     home = HomePage(page)
 

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from datetime import datetime
 class ArtifactManager:
@@ -19,7 +20,14 @@ class ArtifactManager:
 
 
     def _generate_execution_Id(self):
-        return datetime.now().strftime("%Y%m%d_%H%M%S")
+        # xdist workers are separate processes. Without a shared id each one stamps its
+        # own timestamp and the run gets split across two artifact folders, one of which
+        # ends up empty.
+        execution_id = os.environ.get("TEST_EXECUTION_ID")
+        if not execution_id:
+            execution_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            os.environ["TEST_EXECUTION_ID"] = execution_id
+        return execution_id
 
     def _create_execution_directories(self):
 

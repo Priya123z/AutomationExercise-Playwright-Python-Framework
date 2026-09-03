@@ -1,3 +1,4 @@
+import pytest
 
 from pages.home_page import HomePage
 from utils.factories.user_factory import UserFactory
@@ -5,6 +6,9 @@ from utils.factories.user_factory import UserFactory
 import allure
 
 
+@pytest.mark.ui
+@pytest.mark.auth
+@pytest.mark.smoke
 @allure.feature("Authentication")
 @allure.story("User Registration")
 @allure.title("Register a new user successfully")
