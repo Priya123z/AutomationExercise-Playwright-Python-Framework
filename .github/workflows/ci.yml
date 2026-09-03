@@ -67,14 +67,16 @@ jobs:
             -v "${{ github.workspace }}/artifacts:/app/artifacts" \
             automationexercise-tests:${{ github.sha }} \
             pytest -n 2 -q -p no:cacheprovider \
-              --junitxml=/app/artifacts/${TEST_EXECUTION_ID}/junit.xml
+              --junitxml=/app/artifacts/${TEST_EXECUTION_ID}/junit.xml \
+            | tee pytest.log
+          exit "${PIPESTATUS[0]}"
 
       - name: Summarise results
         if: always()
         id: summary
         run: |
           python3 .github/scripts/summarise_results.py \
-            "artifacts/${TEST_EXECUTION_ID}/junit.xml" summary.md
+            "artifacts/${TEST_EXECUTION_ID}/junit.xml" summary.md pytest.log
 
       - name: Restore Allure history
         if: always()
