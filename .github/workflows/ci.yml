@@ -116,8 +116,11 @@ jobs:
           JSON
 
           npm install -g allure-commandline --silent
+          # --report-name, or the published report heads itself "Allure Report",
+          # which tells a visitor nothing about what they are looking at.
           allure generate "artifacts/${TEST_EXECUTION_ID}/allure-results" \
-            -o "artifacts/${TEST_EXECUTION_ID}/allure-report" --clean
+            -o "artifacts/${TEST_EXECUTION_ID}/allure-report" --clean \
+            --report-name "AutomationExercise — UI and API suite"
 
       - name: Publish report
         if: always()

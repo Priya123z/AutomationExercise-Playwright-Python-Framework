@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Bot challenge from the site under test",
+    "matchedStatuses": ["failed", "broken", "skipped"],
+    "messageRegex": "(?s).*(bot challenge|not serving this host|body is not JSON).*"
+  },
+  {
+    "name": "Rate limited by the API under test",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": "(?s).*(429|Too Many Requests|rate limit).*"
+  },
+  {
+    "name": "Site did not respond in time",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": "(?s).*(TimeoutError|Timeout .*exceeded|net::ERR_).*"
+  },
+  {
+    "name": "Contract break — response did not match its schema",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": "(?s).*(ValidationError|does not match|is a required property|is not of type).*"
+  },
+  {
+    "name": "Element never appeared",
+    "matchedStatuses": ["failed"],
+    "messageRegex": "(?s).*(to_be_visible|locator resolved to|strict mode violation|waiting for locator).*"
+  },
+  {
+    "name": "Test defect — the test itself raised",
+    "matchedStatuses": ["broken"]
+  },
+  {
+    "name": "Product defect — an assertion about behaviour failed",
+    "matchedStatuses": ["failed"]
+  }
+]
