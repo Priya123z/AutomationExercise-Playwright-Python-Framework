@@ -1,3 +1,4 @@
+import time
 from enum import StrEnum
 from urllib.parse import urljoin
 
@@ -16,6 +17,8 @@ class HttpMethod(StrEnum):
 
 class APIClient:
 
+    MAX_ATTEMPTS = 4
+    BACKOFF_SECONDS = 2
 
     def __init__(self,request_context: APIRequestContext,base_url: str,):
         self.request = request_context
@@ -32,16 +35,41 @@ class APIClient:
     ):
         url = str(urljoin(self.base_url + "/", endpoint))
 
-        response = self.request.fetch(
-            url,
-            method=method,
-            form=form,
-            data=data,
-            params=params,
-            headers=headers,
-        )
+        response = self._fetch_with_backoff(method, url, data, form, params, headers)
 
         self._reject_non_json(response, method, url)
+
+        return response
+
+    def _fetch_with_backoff(self, method, url, data, form, params, headers):
+        """Retry 429 and 5xx, nothing else.
+
+        These run against public APIs from a shared CI runner, so being rate
+        limited is a fact of the environment rather than a defect in the code under
+        test. 4xx is never retried — the negative tests assert on those, and
+        retrying a 404 would break them.
+        """
+        for attempt in range(1, self.MAX_ATTEMPTS + 1):
+            response = self.request.fetch(
+                url,
+                method=method,
+                form=form,
+                data=data,
+                params=params,
+                headers=headers,
+            )
+
+            retryable = response.status == 429 or response.status >= 500
+
+            if not retryable or attempt == self.MAX_ATTEMPTS:
+                return response
+
+            wait = self.BACKOFF_SECONDS * attempt
+            logger.warning(
+                f"{method} {url} returned {response.status}, retrying in {wait}s "
+                f"(attempt {attempt} of {self.MAX_ATTEMPTS})"
+            )
+            time.sleep(wait)
 
         return response
 
