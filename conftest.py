@@ -1,5 +1,6 @@
 from __future__ import annotations
 import platform
+import shutil
 import urllib.request
 from pathlib import Path
 import pytest
@@ -18,6 +19,7 @@ from utils.file_utils import FileUtils
 from utils.logger import logger
 from utils.screenshot import Screenshot
 from utils.config_manager import config as framework_config
+from utils.config_manager import CONFIG_DIR
 from api.api_client import APIClient
 from api.auth_api import AuthAPI
 from api.dummyjson_auth_api import DummyJsonAuthAPI
@@ -152,6 +154,22 @@ def pytest_configure(config):
     config.option.allure_report_dir = str(artifact.allure_results_dir)
 
     _write_allure_environment()
+    _write_allure_categories()
+
+
+def _write_allure_categories():
+    """Copy the failure taxonomy into the results so Allure can classify.
+
+    Without this the report's Categories panel is empty and every failure looks
+    alike. Most of what has actually gone wrong here was not a product defect —
+    the practice site challenges datacenter addresses and the DummyJSON API rate
+    limits a busy runner — and those two deserve to be named rather than sitting
+    in the same bucket as a real regression.
+    """
+    source = CONFIG_DIR / "allure_categories.json"
+    if source.exists():
+        shutil.copyfile(source, artifact.allure_results_dir / "categories.json")
+
 
 def _write_allure_environment():
     # Without this the report's Environment panel is empty, so you cannot tell which
