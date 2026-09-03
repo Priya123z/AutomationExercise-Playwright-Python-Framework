@@ -1,5 +1,6 @@
 from __future__ import annotations
 import platform
+import urllib.request
 from pathlib import Path
 import pytest
 from playwright.sync_api import expect, sync_playwright
@@ -172,6 +173,19 @@ def _write_allure_environment():
     (artifact.allure_results_dir / "environment.properties").write_text(lines + "\n")
 
 
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    detail = config.stash.get(_SITE_UNREACHABLE, None)
+    if detail:
+        terminalreporter.write_sep(
+            "=", "automationexercise.com skipped", yellow=True, bold=True,
+        )
+        terminalreporter.write_line(
+            f"The site did not answer this host with JSON ({detail}). It sits behind "
+            "Cloudflare, which challenges datacenter addresses, so these tests were "
+            "skipped rather than failed. The DummyJSON API tests still ran."
+        )
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
 
@@ -194,6 +208,30 @@ def pytest_runtest_makereport(item, call):
             )
 
 
+_SITE_UNREACHABLE = pytest.StashKey[str]()
+
+
+def _site_serves_us(url, timeout=20):
+    """Is the practice site answering this machine normally?
+
+    It is behind Cloudflare, which serves an HTML challenge to datacenter
+    addresses. From a GitHub runner that means every test touching the site fails,
+    and the failures look like defects: element not found, JSON decode error at
+    char 0. They are not. Better to check once and skip with the reason than to
+    publish a report full of failures nobody can act on.
+    """
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "python-urllib (framework preflight)"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            body = response.read(400).decode("utf-8", "replace").lstrip()
+            return body[:1] in ("{", "["), f"HTTP {response.status}, body starts {body[:80]!r}"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def pytest_collection_modifyitems(config, items):
     # The UI tests drive a public practice site. Under parallel load it sometimes
     # answers a checkout click with neither the address page nor the register
@@ -203,6 +241,29 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "ui" in item.keywords:
             item.add_marker(pytest.mark.flaky(reruns=2, reruns_delay=3))
+
+    # Everything except the DummyJSON tests needs automationexercise.com. Probe it
+    # once; if it is not answering us with JSON, skip those with the reason rather
+    # than letting them fail as though the framework were broken.
+    needs_site = [
+        i for i in items
+        if "DummyJsonAPI" not in str(i.fspath) and ("ui" in i.keywords or "api" in i.keywords)
+    ]
+
+    if not needs_site:
+        return
+
+    reachable, detail = _site_serves_us(framework_config.api_base_url + "/productsList")
+
+    if reachable:
+        return
+
+    config.stash[_SITE_UNREACHABLE] = detail
+    skip = pytest.mark.skip(
+        reason=f"automationexercise.com is not serving this host: {detail}"
+    )
+    for item in needs_site:
+        item.add_marker(skip)
 
 
 def pytest_addoption(parser):
