@@ -1,6 +1,10 @@
+import pytest
 
 
 
+@pytest.mark.api
+@pytest.mark.products
+@pytest.mark.smoke
 def test_get_all_products(dummyjson_product_api):
 
     response = dummyjson_product_api.get_all_products()

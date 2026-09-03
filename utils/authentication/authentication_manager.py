@@ -1,5 +1,7 @@
 from __future__ import annotations
+import os
 from pathlib import Path
+from utils.artifact_manager import artifact
 from utils.config_manager import config
 from utils.credentials_manager import  credential_manager
 from flows.UI_Flow.login_flow import LoginFlow
@@ -16,9 +18,10 @@ class AuthManager:
         if getattr(self, "_initialized", False):
             return
 
-        self.project_root = Path(__file__).resolve().parent.parent
         self.environment = config.environment
-        self.auth_directory = (self.project_root / "auth" / self.environment)
+        # Storage state lives with the run's artifacts, not in the repo. It is rebuilt
+        # once per execution and shared by every test in that run.
+        self.auth_directory = (artifact.execution_dir / "auth" / self.environment)
 
         self._create_auth_directory()
         self._initialized = True
@@ -52,7 +55,12 @@ class AuthManager:
 
             storage_state = self._storage_state_path(role)
 
-            context.storage_state(path=storage_state)
+            # Under xdist two workers can land here together. Write to a process-unique
+            # file and rename, so nobody ever reads a half-written state.
+            partial = storage_state.with_name(f"{role}.{os.getpid()}.partial")
+            context.storage_state(path=partial)
+            partial.replace(storage_state)
+
             return storage_state
         finally:
             context.close()
@@ -75,13 +83,13 @@ class AuthManager:
 
     def get_storage_state(self, browser, role: str)->Path:
         """
-        Creates a fresh storage state for the requested role.
+        Returns the storage state for a role, logging in once per execution.
         """
 
         storage_state = self._storage_state_path(role)
 
         if storage_state.exists():
-            storage_state.unlink()
+            return storage_state
 
         return self._create_storage_state(browser, role)
 
