@@ -767,7 +767,11 @@ touching the site fails, and the failures look like defects — element not foun
 `JSONDecodeError: Expecting value: line 1 column 1`. They are not defects, and no
 credential or retry fixes them, because the challenge comes before the site does.
 
-Two changes so the suite says what happened:
+`APIClient` also retries 429 and 5xx with backoff, up to four attempts. DummyJSON
+rate-limited a CI run and failed six tests for that reason alone. 4xx is never
+retried — the negative tests assert on those, and retrying a 404 would break them.
+
+Two changes so the suite says what happened when the challenge is the problem:
 
 - `APIClient` checks the body actually starts as JSON and raises with the status
   and the first 160 characters if not, instead of letting `response.json()` fail
