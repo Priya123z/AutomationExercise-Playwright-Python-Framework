@@ -98,7 +98,21 @@ jobs:
 
       - name: Generate Allure report
         if: always()
+        env:
+          REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || '' }}
         run: |
+          # Lets the published report link back to the run that produced it.
+          cat > "artifacts/${TEST_EXECUTION_ID}/allure-results/executor.json" <<JSON
+          {
+            "name": "GitHub Actions",
+            "type": "github",
+            "buildOrder": ${{ github.run_number }},
+            "buildName": "${{ github.workflow }} #${{ github.run_number }}",
+            "buildUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "reportUrl": "${REPORT_URL}"
+          }
+          JSON
+
           npm install -g allure-commandline --silent
           allure generate "artifacts/${TEST_EXECUTION_ID}/allure-results" \
             -o "artifacts/${TEST_EXECUTION_ID}/allure-report" --clean

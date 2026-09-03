@@ -1,4 +1,5 @@
 from __future__ import annotations
+import platform
 from pathlib import Path
 import pytest
 from playwright.sync_api import sync_playwright
@@ -141,6 +142,28 @@ def pytest_configure(config):
 
     config.option.htmlpath = str(artifact.html_report)
     config.option.allure_report_dir = str(artifact.allure_results_dir)
+
+    _write_allure_environment()
+
+def _write_allure_environment():
+    # Without this the report's Environment panel is empty, so you cannot tell which
+    # browser or which URL a published run actually used.
+    values = {
+        "Environment": framework_config.environment,
+        "Browser": framework_config.browser,
+        "Headless": framework_config.headless,
+        "Base.URL": framework_config.base_url,
+        "API.URL": framework_config.api_base_url,
+        "DummyJSON.URL": framework_config.dummyjson_api_base_url,
+        "Default.Timeout.ms": framework_config.timeout,
+        "Expect.Timeout.ms": framework_config.expect_timeout,
+        "Python": platform.python_version(),
+        "Execution.ID": artifact.execution_id,
+    }
+
+    lines = "\n".join(f"{key}={value}" for key, value in values.items())
+    (artifact.allure_results_dir / "environment.properties").write_text(lines + "\n")
+
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
