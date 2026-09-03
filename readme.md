@@ -759,6 +759,26 @@ That is why the suite is 30 tests rather than the 45 it collected before. The
 eighteen removed cases were the same three flows repeated across six accounts,
 which added no distinct assertions.
 
+## When the site will not talk to CI
+
+automationexercise.com sits behind Cloudflare, which serves an HTML challenge to
+datacenter addresses. From a GitHub runner that intermittently means every test
+touching the site fails, and the failures look like defects — element not found,
+`JSONDecodeError: Expecting value: line 1 column 1`. They are not defects, and no
+credential or retry fixes them, because the challenge comes before the site does.
+
+Two changes so the suite says what happened:
+
+- `APIClient` checks the body actually starts as JSON and raises with the status
+  and the first 160 characters if not, instead of letting `response.json()` fail
+  later with a decode error that names nothing.
+- A preflight probe runs once at collection. If the site is not answering this
+  host with JSON, the tests that need it are **skipped with the reason** and the
+  DummyJSON tests still run. A skipped test with an explanation is honest; a
+  failed test blames code that is fine.
+
+The run summary prints why, so nobody has to work it out from a traceback.
+
 ## Retries
 
 UI tests get two retries, applied in `pytest_collection_modifyitems`. Under

@@ -41,8 +41,32 @@ class APIClient:
             headers=headers,
         )
 
+        self._reject_non_json(response, method, url)
 
         return response
+
+    @staticmethod
+    def _reject_non_json(response: APIResponse, method: HttpMethod, url: str) -> None:
+        """Fail with the reason rather than letting response.json() blow up later.
+
+        automationexercise.com is behind Cloudflare, which serves an HTML challenge
+        to datacenter addresses. On a CI runner that used to surface twenty rows of
+        `JSONDecodeError: Expecting value: line 1 column 1`, which says nothing
+        about what actually happened.
+        """
+        body = response.text().lstrip()
+
+        if body[:1] in ("{", "["):
+            return
+
+        snippet = " ".join(body[:160].split())
+
+        raise AssertionError(
+            f"{method} {url} returned {response.status} but the body is not JSON. "
+            f"This is usually a bot challenge rather than a defect — the site sits "
+            f"behind Cloudflare and answers datacenter addresses differently. "
+            f"Body starts: {snippet!r}"
+        )
 
     def get(
         self,
