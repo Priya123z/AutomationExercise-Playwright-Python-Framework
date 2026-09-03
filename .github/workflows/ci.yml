@@ -60,17 +60,21 @@ jobs:
         run: |
           mkdir -p artifacts
           docker run --rm \
+            --user "$(id -u):$(id -g)" \
             -e TEST_EXECUTION_ID \
             -e BASE_URL -e API_BASE_URL -e DUMMYJSON_API_BASE_URL \
             -e HEADLESS -e BROWSER -e DEFAULT_TIMEOUT -e EXPECT_TIMEOUT \
             -v "${{ github.workspace }}/artifacts:/app/artifacts" \
             automationexercise-tests:${{ github.sha }} \
-            pytest -n 2 -q --junitxml=/app/artifacts/${TEST_EXECUTION_ID}/junit.xml
+            pytest -n 2 -q -p no:cacheprovider \
+              --junitxml=/app/artifacts/${TEST_EXECUTION_ID}/junit.xml
 
       - name: Summarise results
         if: always()
         id: summary
-        run: python3 .github/scripts/summarise_results.py "artifacts/${TEST_EXECUTION_ID}/junit.xml"
+        run: |
+          python3 .github/scripts/summarise_results.py \
+            "artifacts/${TEST_EXECUTION_ID}/junit.xml" summary.md
 
       - name: Restore Allure history
         if: always()
@@ -119,7 +123,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8')
+            const body = fs.readFileSync('summary.md', 'utf8')
               + `\n\n[Open the full Allure report](${process.env.REPORT_URL})\n`
               + '\n<!-- automation-test-report -->';
 

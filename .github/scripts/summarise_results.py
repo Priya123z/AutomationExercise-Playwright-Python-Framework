@@ -78,6 +78,11 @@ def main():
         with open(summary, "a") as handle:
             handle.write(body)
 
+    # Each step gets its own GITHUB_STEP_SUMMARY file, so the comment step cannot read
+    # the one written here. Keep a copy it can pick up.
+    if len(sys.argv) > 2:
+        Path(sys.argv[2]).write_text(body)
+
 
 if __name__ == "__main__":
     main()
