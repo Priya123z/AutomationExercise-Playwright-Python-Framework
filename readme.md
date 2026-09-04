@@ -51,7 +51,7 @@ gets made.
 | File | Why this one |
 |---|---|
 | [`tests/UI/test_login.py`](tests/UI/test_login.py) | What a test looks like here: nineteen lines, no selectors, no waits, no URLs. Just intent and one assertion. If this reads clearly, the layering is doing its job. |
-| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives — HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
+| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives  HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
 | [`conftest.py`](conftest.py) | Every fixture and hook, including the parts that are not obvious: an account created over the API per test instead of read from committed data, a preflight that skips with a reason when the site blocks CI, and reruns applied to UI tests only. |
 
 **Then, if you want the interesting part:** the three bugs in
@@ -468,7 +468,7 @@ The CI workflow currently performs:
 4.  Result summary written to the job summary
 5.  Allure history restored from the previous publish, so trends accumulate
 6.  Allure report generation
-7.  Publish to GitHub Pages — `main` to the site root, a pull request to `pr-<number>/`
+7.  Publish to GitHub Pages  `main` to the site root, a pull request to `pr-<number>/`
 8.  Pull request comment with the counts and a link to that report
 9.  Artifact upload of the whole run for 14 days
 
@@ -477,7 +477,7 @@ publishes a report explaining why. The job then fails on the test outcome.
 
 The container runs as the host uid, so nothing on the mounted volume comes back
 owned by root. The results folder is named from `TEST_EXECUTION_ID`, set by the
-workflow, rather than searched for afterwards — see the note under Artifacts.
+workflow, rather than searched for afterwards  see the note under Artifacts.
 
 The workflow runs for pushes and pull requests targeting the configured
 branches.
@@ -528,7 +528,7 @@ locally.
 
 ## Prerequisites
 
--   Python 3.11 or newer — `api/api_client.py` uses `enum.StrEnum`, which is a
+-   Python 3.11 or newer  `api/api_client.py` uses `enum.StrEnum`, which is a
     3.11 addition. CI and the Docker image run 3.12.
 -   pip
 -   Git
@@ -749,7 +749,7 @@ Markers are declared in `pytest.ini` and enforced with `--strict-markers`, so a
 typo in a decorator fails collection instead of silently marking nothing.
 
 Note that `--strict-markers` validates decorators, not `-m` expressions. A typo
-in `-m` deselects everything and exits cleanly — check the collected count.
+in `-m` deselects everything and exits cleanly  check the collected count.
 
 ------------------------------------------------------------------------
 
@@ -773,7 +773,7 @@ artifacts/<id>/
 The execution id used to be a per-second timestamp taken when
 `ArtifactManager` was first imported. Under `pytest -n`, every xdist worker is a
 separate process, so two workers starting either side of a second boundary each
-created their own folder — and one of them ended up empty. CI selected a folder
+created their own folder  and one of them ended up empty. CI selected a folder
 with `find -print -quit`, which returns directory order rather than the one with
 results in it, so the published report could contain half the run or none of it.
 It reproduced in two of three runs.
@@ -798,7 +798,7 @@ that had nothing to do with this code.
 A `registered_user` fixture now creates the account over the API, hands it to the
 test, and deletes it afterwards. One API call, always works, and the site is left
 as it was found. Data-driven parametrisation is still used where the data
-actually changes behaviour — payment details, product ids — rather than to run
+actually changes behaviour  payment details, product ids  rather than to run
 one code path repeatedly.
 
 That is why the suite is 30 tests rather than the 45 it collected before. The
@@ -809,13 +809,13 @@ which added no distinct assertions.
 
 automationexercise.com sits behind Cloudflare, which serves an HTML challenge to
 datacenter addresses. From a GitHub runner that intermittently means every test
-touching the site fails, and the failures look like defects — element not found,
+touching the site fails, and the failures look like defects  element not found,
 `JSONDecodeError: Expecting value: line 1 column 1`. They are not defects, and no
 credential or retry fixes them, because the challenge comes before the site does.
 
 `APIClient` also retries 429 and 5xx with backoff, up to four attempts. DummyJSON
 rate-limited a CI run and failed six tests for that reason alone. 4xx is never
-retried — the negative tests assert on those, and retrying a 404 would break them.
+retried  the negative tests assert on those, and retrying a 404 would break them.
 
 Two changes so the suite says what happened when the challenge is the problem:
 

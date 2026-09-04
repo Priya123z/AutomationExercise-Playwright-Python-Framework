@@ -71,7 +71,7 @@ def _apply_timeouts(context):
     """Make DEFAULT_TIMEOUT mean something.
 
     It was read from config, validated, tuned per environment (uat 30s, prod
-    60s) and written into the Allure environment panel — and nothing ever
+    60s) and written into the Allure environment panel  and nothing ever
     applied it. Every locator action was therefore waiting Playwright's built-in
     30s, so the report advertised a 10s timeout the run did not use, and a
     genuine failure took three times longer to surface than it should.
@@ -181,9 +181,9 @@ def _write_allure_categories():
     """Copy the failure taxonomy into the results so Allure can classify.
 
     Without this the report's Categories panel is empty and every failure looks
-    alike. Most of what has actually gone wrong here was not a product defect —
+    alike. Most of what has actually gone wrong here was not a product defect 
     the practice site challenges datacenter addresses and the DummyJSON API rate
-    limits a busy runner — and those two deserve to be named rather than sitting
+    limits a busy runner  and those two deserve to be named rather than sitting
     in the same bucket as a real regression.
     """
     source = CONFIG_DIR / "allure_categories.json"

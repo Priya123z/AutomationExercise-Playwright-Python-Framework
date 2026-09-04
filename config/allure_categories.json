@@ -15,7 +15,7 @@
     "messageRegex": "(?s).*(TimeoutError|Timeout .*exceeded|net::ERR_).*"
   },
   {
-    "name": "Contract break — response did not match its schema",
+    "name": "Contract break  response did not match its schema",
     "matchedStatuses": ["failed", "broken"],
     "messageRegex": "(?s).*(ValidationError|does not match|is a required property|is not of type).*"
   },
@@ -25,11 +25,11 @@
     "messageRegex": "(?s).*(to_be_visible|locator resolved to|strict mode violation|waiting for locator).*"
   },
   {
-    "name": "Test defect — the test itself raised",
+    "name": "Test defect  the test itself raised",
     "matchedStatuses": ["broken"]
   },
   {
-    "name": "Product defect — an assertion about behaviour failed",
+    "name": "Product defect  an assertion about behaviour failed",
     "matchedStatuses": ["failed"]
   }
 ]
