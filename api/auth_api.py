@@ -1,5 +1,3 @@
-from dataclasses import asdict
-
 from playwright.sync_api import APIResponse
 
 from api.api_client import APIClient
@@ -39,7 +37,7 @@ class AuthAPI:
         logger.info(f"Registering user: {user.first_name} {user.last_name}")
 
 
-        response =  self.api_client.post(
+        response = self.api_client.post(
             endpoint= Endpoints.REGISTER,
             form=payload)
 
@@ -59,7 +57,7 @@ class AuthAPI:
         }
         logger.info(f"Logging in user{user.first_name} {user.last_name}")
 
-        response =  self.api_client.post(
+        response = self.api_client.post(
             endpoint=Endpoints.VERIFY_LOGIN,
             form=payload
         )

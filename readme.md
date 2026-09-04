@@ -51,7 +51,7 @@ gets made.
 | File | Why this one |
 |---|---|
 | [`tests/UI/test_login.py`](tests/UI/test_login.py) | What a test looks like here: nineteen lines, no selectors, no waits, no URLs. Just intent and one assertion. If this reads clearly, the layering is doing its job. |
-| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives  HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
+| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives: HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
 | [`conftest.py`](conftest.py) | Every fixture and hook, including the parts that are not obvious: an account created over the API per test instead of read from committed data, a preflight that skips with a reason when the site blocks CI, and reruns applied to UI tests only. |
 
 **Then, if you want the interesting part:** the three bugs in
@@ -468,7 +468,7 @@ The CI workflow currently performs:
 4.  Result summary written to the job summary
 5.  Allure history restored from the previous publish, so trends accumulate
 6.  Allure report generation
-7.  Publish to GitHub Pages  `main` to the site root, a pull request to `pr-<number>/`
+7.  Publish to GitHub Pages: `main` to the site root, a pull request to `pr-<number>/`
 8.  Pull request comment with the counts and a link to that report
 9.  Artifact upload of the whole run for 14 days
 
@@ -477,7 +477,7 @@ publishes a report explaining why. The job then fails on the test outcome.
 
 The container runs as the host uid, so nothing on the mounted volume comes back
 owned by root. The results folder is named from `TEST_EXECUTION_ID`, set by the
-workflow, rather than searched for afterwards  see the note under Artifacts.
+workflow, rather than searched for afterwards. See the note under Artifacts.
 
 The workflow runs for pushes and pull requests targeting the configured
 branches.
@@ -528,7 +528,7 @@ locally.
 
 ## Prerequisites
 
--   Python 3.11 or newer  `api/api_client.py` uses `enum.StrEnum`, which is a
+-   Python 3.11 or newer, because `api/api_client.py` uses `enum.StrEnum`, which is a
     3.11 addition. CI and the Docker image run 3.12.
 -   pip
 -   Git
@@ -844,18 +844,22 @@ code. Reruns are reported in the run summary so they stay visible.
 
 Being honest about what is still wrong here:
 
--   `config/credentials.json` holds a plaintext password, and
-    `utils/auth/qa/*.json` holds committed browser session state. Both are in
-    `.gitignore`, but they were committed before that rule existed, so they are
-    still tracked and still in history. They are credentials for a public
-    practice site, not a real system, but they should be purged and rotated.
--   `allure-2.45.0.tgz`, 30 MB, is committed and used by nothing. CI installs the
-    Allure CLI from npm. It is excluded from the Docker build context but remains
-    in git history.
--   `.idea/` and `screenshots/` are tracked for the same reason, and `.idea/`
-    leaks a local path.
--   Removing all of the above needs a history rewrite and a force push, which is
-    a deliberate decision rather than a cleanup.
+-   `config/credentials.json` holds a plaintext password. It is read at runtime
+    by `credentials_manager`, so unlike the items below it cannot simply be
+    deleted; the suite needs it to log in. It is an account on a public practice
+    site rather than anything real, but the right shape is an env var with this
+    file as the example, and that has not been done yet.
+-   Four things that were tracked despite being in `.gitignore`, because they were
+    committed before the rule existed, are no longer tracked: `utils/auth/qa/*.json`
+    (browser session state the framework stopped reading when storage state moved
+    into `artifacts/<run-id>/auth/`), `screenshots/` (ten failure screenshots from
+    August, superseded by `artifacts/<run-id>/screenshots/`), `.idea/` (which
+    leaked a local path), and `allure-2.45.0.tgz` (30 MB, referenced by nothing;
+    CI installs the Allure CLI from npm).
+-   **All four are still in git history**, and the session cookies in them are
+    still readable there. Getting them out needs a history rewrite and a force
+    push, which is a deliberate decision rather than a cleanup, and has not been
+    done. Treat anything that was in those files as disclosed.
 -   `uat` and `prod` point at the same URLs as `qa`, because the practice site has
     only one deployment. They differ in timeouts and headless mode only.
 -   The suite drives a public site. Cloudflare responses and outages will still

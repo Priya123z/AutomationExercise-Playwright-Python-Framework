@@ -23,7 +23,7 @@ class CredentialManager:
     def __init__(self):
         if getattr(self,"_initialized", False):
             return
-        self.project_root =  Path(__file__).parent.parent.resolve()
+        self.project_root = Path(__file__).parent.parent.resolve()
         self.credentials_file = self.project_root /"config"/ "credentials.json"
         self.credentials = self._load_credentials()
         self._initialized = True

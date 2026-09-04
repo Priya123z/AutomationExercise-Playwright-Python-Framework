@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from utils.artifact_manager import artifact
 from utils.config_manager import config
-from utils.credentials_manager import  credential_manager
+from utils.credentials_manager import credential_manager
 from flows.UI_Flow.login_flow import LoginFlow
 
 class AuthManager:
@@ -64,15 +64,6 @@ class AuthManager:
             return storage_state
         finally:
             context.close()
-
-    # def _delete_storage_state(self, role: str):
-    #     """
-    #     Deletes a single storage state.
-    #     """
-    #     storage_state = self._storage_state_path(role)
-    #
-    #     if storage_state.exists():
-    #         storage_state.unlink()
 
     def clear_all_storage_states(self):
         """
