@@ -46,7 +46,7 @@ class APIClient:
 
         These run against public APIs from a shared CI runner, so being rate
         limited is a fact of the environment rather than a defect in the code under
-        test. 4xx is never retried  the negative tests assert on those, and
+        test. 4xx is never retried, because the negative tests assert on those and
         retrying a 404 would break them.
         """
         for attempt in range(1, self.MAX_ATTEMPTS + 1):
