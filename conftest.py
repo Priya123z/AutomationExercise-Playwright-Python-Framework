@@ -71,7 +71,7 @@ def _apply_timeouts(context):
     """Make DEFAULT_TIMEOUT mean something.
 
     It was read from config, validated, tuned per environment (uat 30s, prod
-    60s) and written into the Allure environment panel  and nothing ever
+    60s) and written into the Allure environment panel, and nothing ever
     applied it. Every locator action was therefore waiting Playwright's built-in
     30s, so the report advertised a 10s timeout the run did not use, and a
     genuine failure took three times longer to surface than it should.
@@ -183,7 +183,7 @@ def _write_allure_categories():
     Without this the report's Categories panel is empty and every failure looks
     alike. Most of what has actually gone wrong here was not a product defect 
     the practice site challenges datacenter addresses and the DummyJSON API rate
-    limits a busy runner  and those two deserve to be named rather than sitting
+    limits a busy runner, and those two deserve to be named rather than sitting
     in the same bucket as a real regression.
     """
     source = CONFIG_DIR / "allure_categories.json"
@@ -276,6 +276,23 @@ def pytest_collection_modifyitems(config, items):
     # prompt, and no wait fixes that because nothing is coming. Those get two
     # retries. API tests get none, and a real regression still fails every
     # attempt, so this hides flakiness in the target rather than in this code.
+    #
+    # pytest.mark.flaky is only meaningful while pytest-rerunfailures is
+    # installed. Without it the marker is inert, the retries silently stop
+    # happening, and the first symptom is a red build that passes on a rerun by
+    # hand. It is in requirements.txt, so a missing plugin means a stale
+    # environment; say so loudly rather than quietly running without retries.
+    reruns_available = config.pluginmanager.hasplugin("rerunfailures")
+    if not reruns_available:
+        config.issue_config_time_warning(
+            pytest.PytestConfigWarning(
+                "pytest-rerunfailures is not installed, so the UI reruns are not "
+                "happening and the suite is more likely to fail on practice-site "
+                "flakiness. Install it with: pip install -r requirements.txt"
+            ),
+            stacklevel=2,
+        )
+
     for item in items:
         if "ui" in item.keywords:
             item.add_marker(pytest.mark.flaky(reruns=2, reruns_delay=3))

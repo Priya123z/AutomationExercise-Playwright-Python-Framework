@@ -44,7 +44,7 @@ class ProductAPI:
 
         endpoint = Endpoints.PRODUCT.format(id=product_id)
 
-        return  self.api_client.patch(endpoint, data=asdict(request))
+        return self.api_client.patch(endpoint, data=asdict(request))
 
     def delete_product(self, product_id: int):
 
