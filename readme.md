@@ -9,102 +9,46 @@ Published by CI on every commit: 30 tests, per-step detail, trend history across
 runs, and screenshots and traces on the failures.
 
 [![Tests](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![Playwright](https://img.shields.io/badge/playwright-1.61-45ba4b)
 ![Tests](https://img.shields.io/badge/tests-30-brightgreen)
 
 Every pull request gets a comment with the pass/fail counts and a link to its own
 copy of the report, published under `pr-<number>/`.
 
-------------------------------------------------------------------------
+## Why this exists
 
-## Why this project exists
+Writing automated tests is easy. Keeping a growing suite maintainable is not.
+The goal here is a layout that does not need rewriting at fifty tests: a test
+reads as intent and never touches a selector, a URL or a wait, and everything
+underneath it (config, browsers, auth, artifacts, reporting) sits behind
+fixtures.
 
-Writing automated tests is easy. Keeping a growing automation suite
-maintainable is not.
-
-As the suite grew, the framework needed better separation of
-responsibilities, reusable components, centralized configuration,
-reliable diagnostics, API abstraction, and CI/CD support.
-
-The goal is to build automation that is:
-
--   Maintainable
--   Reusable
--   Scalable
--   Debuggable
--   CI/CD ready
-
-------------------------------------------------------------------------
+It tests a public practice site, so the coverage is not the interesting part.
+The framework around the tests is.
 
 ## If you have five minutes
 
-This README is long because the framework is documented properly. If you are
-evaluating it rather than using it, here is the short path.
+**Open the [live report](https://priya123z.github.io/AutomationExercise-Playwright-Python-Framework/) first.**
+It is the output; everything below is how it gets made.
 
-**Open the [live report](https://priya123z.github.io/AutomationExercise-Playwright-Python-Framework/) first.** Thirty tests, published by CI, with
-per-step detail and trend history. It is the output; everything below is how it
-gets made.
-
-**Then read three files, in this order:**
+Then read three files, in this order:
 
 | File | Why this one |
 |---|---|
 | [`tests/UI/test_login.py`](tests/UI/test_login.py) | What a test looks like here: nineteen lines, no selectors, no waits, no URLs. Just intent and one assertion. If this reads clearly, the layering is doing its job. |
-| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives: HTTP status, then the business response, then the JSON Schema. A 200 that carries the wrong body fails here. |
-| [`conftest.py`](conftest.py) | Every fixture and hook, including the parts that are not obvious: an account created over the API per test instead of read from committed data, a preflight that skips with a reason when the site blocks CI, and reruns applied to UI tests only. |
+| [`flows/API_Flow/auth_flow.py`](flows/API_Flow/auth_flow.py) | The layer between a test and an API client, and where the three-tier validation lives: HTTP status, then the business response, then the JSON Schema. A 200 carrying the wrong body fails here. |
+| [`conftest.py`](conftest.py) | Every fixture and hook, including the parts that are not obvious: accounts created over the API rather than read from committed data, a preflight that skips with a reason when the site blocks CI, and reruns applied to UI tests only. |
 
-**Then, if you want the interesting part:** the three bugs in
-[Artifacts, and one bug worth reading about](#artifacts-and-one-bug-worth-reading-about)
-and [Known issues](#known-issues). The first is a genuine parallel-execution
-defect that could publish half a test run as though it were the whole thing, and
-it is the kind of thing that only shows up when you look.
-
-## Who this is worth reading
-
-- **Starting a Playwright and Python suite** and wanting a layout that will not
-  need rewriting at fifty tests. Copy the layering: test to flow to page or API
-  client, one direction only.
-- **Deciding how to report results.** The Allure-to-Pages setup with trend
-  history and PR comments is here in full, in
-  [`.github/workflows/ci.yml`](.github/workflows/ci.yml), and it is the part
-  people usually skip.
-- **Running browser tests in Docker on a hosted runner.** The image runs as an
-  arbitrary uid because GitHub runners are 1001 and images are usually built as
-  1000, which is a mistake worth not repeating.
-- **Testing against a public site you do not control.** Cloudflare challenges
-  datacenter addresses, so the suite checks once and skips with a reason rather
-  than publishing twenty failures nobody can act on.
-
-**What this is not.** It tests a public practice site, so the test data is not
-production-shaped and there is no database to seed. The value is the framework
-around the tests, not the coverage of automationexercise.com.
-
-------------------------------------------------------------------------
-
-## Tech Stack
-
--   **Python** - Core programming language
--   **Playwright** - UI and API automation
--   **Pytest** - Test runner, fixtures, parameterization, and test
-    organization
--   **pytest-xdist** - Parallel test execution
--   **Allure** - Interactive test reporting
--   **JSON Schema** - API contract validation
--   **Faker** - Dynamic test data generation
--   **Loguru** - Centralized logging
--   **OpenPyXL** - Excel test-data support
--   **python-dotenv** - Environment configuration
--   **Git / GitHub** - Version control
--   **GitHub Actions** - CI/CD execution
-
-------------------------------------------------------------------------
+Then, if you want the interesting part: [the execution-id
+bug](#artifacts-and-one-bug-worth-reading-about), a genuine parallel-execution
+defect that could publish half a test run as though it were the whole thing.
 
 ## Architecture
 
-The framework separates test scenarios from implementation details.
+One direction only. A test never reaches past the layer below it.
 
-``` text
+```
                          TEST CASES
                              |
                              v
@@ -119,781 +63,264 @@ The framework separates test scenarios from implementation details.
         PLAYWRIGHT UI                   API CLIENT
                                             |
                                             v
-                                         ENDPOINTS
-
-                  COMMON FRAMEWORK LAYERS
-                             |
-             +---------------+---------------+
-             |               |               |
-             v               v               v
-        TEST DATA      CONFIGURATION     UTILITIES
-        FACTORIES       MANAGEMENT       & LOGGING
-             |               |               |
-             +---------------+---------------+
-                             v
-                       VALIDATION
-                             |
-                  +----------+----------+
-                  |                     |
-                  v                     v
-             JSON Schema           Business
-             Validation            Validation
+                                        ENDPOINTS
 ```
 
-------------------------------------------------------------------------
+Underneath, shared by both sides: configuration, test-data factories, logging,
+artifact management, and schema validation.
 
-## Project Structure
+| Layer | Holds | Never holds |
+|---|---|---|
+| `tests/` | intent, and the assertion | selectors, URLs, waits, payloads |
+| `flows/` | a business workflow, and its validation | element lookups, HTTP calls |
+| `pages/`, `components/` | selectors and page transitions | assertions about business rules |
+| `api/` | endpoints, payload shaping, retries | test data, assertions |
+| `utils/` | config, factories, logging, artifacts, schemas | anything about this site |
 
-``` text
-AutomationExercise-Playwright-Python-Framework/
-|
-+-- api/
-|   +-- api_client.py
-|   +-- auth_api.py
-|   +-- product_api.py
-|   +-- endpoints.py
-|
-+-- config/
-|   +-- qa.env
-|   +-- uat.env
-|   +-- prod.env
-|
-+-- flows/
-|   +-- API_Flow/
-|       +-- auth_flow.py
-|       +-- auth_negative_flow.py
-|       +-- product_flow.py
-|
-+-- models/
-|   +-- ...
-|
-+-- pages/
-|   +-- ...
-|
-+-- schemas/
-|   +-- ...
-|
-+-- tests/
-|   +-- UI/
-|   +-- api/
-|
-+-- test_data/
-|   +-- ...
-|
-+-- utils/
-|   +-- factories/
-|   +-- readers/
-|   +-- authentication/
-|   +-- artifact_manager.py
-|   +-- config_manager.py
-|   +-- logger.py
-|   +-- schema_validator.py
-|   +-- test_data.py
-|   +-- ...
-|
-+-- artifacts/
-|   +-- ...
-|
-+-- .github/
-|   +-- workflows/
-|       +-- ci.yml
-|
-+-- conftest.py
-+-- pytest.ini
-+-- requirements.txt
-+-- .gitignore
-+-- README.md
+## Project structure
+
+```
+api/            api_client (retries, non-JSON guard), auth, product, endpoints
+components/     navbar, cart modal, checkout modal
+config/         default.env plus qa/uat/prod overrides, allure categories
+flows/          API_Flow, UI_Flow: the business workflows tests call
+models/         automationexercise.py, dummyjson.py: request and record shapes
+pages/          one page object per page, signup_login_page/ for the flow
+schemas/        JSON Schema contracts, applied to API responses
+test_data/      payment and product data, read as JSON
+tests/          UI/ and api/, 30 tests
+utils/          config, artifacts, auth, logging, factories, schema validation
+conftest.py     every fixture and hook
+Dockerfile      python:3.12-slim plus chromium, what CI runs
+pytest.ini      markers, enforced with --strict-markers
 ```
 
-> Generated reports, logs, screenshots, traces, videos, Allure results,
-> environment files, and virtual environments should not be committed to
-> Git.
+Reports, logs, screenshots, traces, videos and Allure results are written under
+`artifacts/<run id>/` and are not committed.
 
-------------------------------------------------------------------------
+## Getting started
 
-# Features
+```bash
+git clone https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework.git
+cd AutomationExercise-Playwright-Python-Framework
 
-## UI Automation
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium
 
--   Playwright with Python
--   Page Object Model
--   Reusable page components
--   Browser Factory
--   Chromium / Firefox / WebKit support
--   Pytest fixtures
--   Dynamic test data
--   Business-oriented UI flows
--   Automatic screenshots on failure
--   Tracing and video capture for diagnostics
-
-## API Automation
-
-The API layer follows a layered architecture:
-
-``` text
-Test
-  |
-  v
-Flow
-  |
-  v
-API
-  |
-  v
-API Client
-  |
-  v
-Endpoint
+pytest -q
 ```
 
-The framework currently covers:
+Nothing to configure. There are no secrets and no accounts to create: the tests
+that need one register it over the API and delete it afterwards.
 
--   REST API testing
--   CRUD operations
--   Request/response models
--   Centralized API client
--   Endpoint management
--   API chaining
--   Positive and negative scenarios
--   HTTP validation
--   Business validation
--   JSON Schema contract validation
--   API response attachments in Allure
+Python 3.10 or newer. CI and the Docker image run 3.12.
 
-------------------------------------------------------------------------
+## Running tests
 
-## API Chaining
+```bash
+pytest -q                       # all 30
+pytest -n 2 -q                  # two workers, which is what CI uses
+pytest tests/UI -q              # 13 browser tests
+pytest tests/api -q             # 17 API tests
+pytest tests/UI/test_login.py -q
 
-The framework supports multi-step API workflows.
-
-Example:
-
-``` text
-Create User
-     |
-     v
-Login User
-     |
-     v
-Delete User
+BROWSER=firefox pytest -q       # chromium, firefox or webkit
+HEADLESS=False pytest -q
+pytest --environment=uat        # qa, uat or prod
 ```
 
-Dynamically generated test data can be passed from one operation to the
-next, allowing dependent API operations to be validated as an end-to-end
-workflow rather than isolated requests.
+`BROWSER` is an environment variable rather than a `--browser` flag on purpose:
+`pytest-playwright` registers an option by that name, and anyone with that
+plugin installed used to get an argparse conflict before collection started,
+with nothing explaining why.
 
-------------------------------------------------------------------------
+The Docker image installs Chromium only. Run the other two locally.
 
-# API Validation Strategy
+### Selecting tests
 
-API responses are validated at multiple levels.
-
-### 1. HTTP Validation
-
-Validates the actual HTTP response status.
-
-``` python
-assert response.status == 200
+```bash
+pytest -m smoke        # 8 of 30, the critical path
+pytest -m api          # 17
+pytest -m ui           # 13
+pytest -m auth         # 13
+pytest -m products     # 10
+pytest -m negative     # 8
+pytest -m "ui and cart"
 ```
 
-### 2. Business Validation
+Markers are declared in `pytest.ini` and enforced with `--strict-markers`, so a
+typo in a decorator fails collection instead of silently marking nothing. Note
+that `--strict-markers` validates decorators, not `-m` expressions: a typo in
+`-m` deselects everything and exits cleanly, so check the collected count.
 
-Validates application-specific response values.
+## In Docker
 
-``` python
-assert login_body.responseCode == 200
-assert login_body.message == "User exists!"
+```bash
+docker build -t automationexercise-tests .
+mkdir -p artifacts
+docker run --rm --user "$(id -u):$(id -g)" \
+  -e TEST_EXECUTION_ID=local \
+  -e HEADLESS=true -e BROWSER=chromium \
+  -v "$PWD/artifacts:/app/artifacts" \
+  automationexercise-tests
 ```
 
-### 3. Contract Validation
+The container runs as the host uid, so nothing on the mounted volume comes back
+owned by root. The image is built as uid 1000 but GitHub runners are 1001, and
+that mismatch is a mistake worth not repeating: browsers are installed to
+`/ms-playwright` and made world-readable, and `HOME` is `/tmp`, so an arbitrary
+`--user` can still find them and still write pytest's scratch files.
 
-Validates the response structure against a JSON Schema.
+## API validation, in three tiers
 
-``` python
-SchemaValidator.validate_response(
-    response,
-    "schemas/auth/login_user_schema.json"
+A 200 is not a pass.
+
+```python
+assert response.status == 200                       # HTTP
+assert login_body["responseCode"] == 200            # business
+SchemaValidator.validate_response(                  # contract
+    response, "auth/login_user_schema.json"
 )
 ```
 
-This helps detect breaking API contract changes even when the HTTP
-status code is successful.
+The schemas live in `schemas/` as their own files and all set
+`additionalProperties: false`, so a field being added, removed or retyped fails
+the build even when the status code is fine. That is the break a status-code
+assertion cannot see.
 
-------------------------------------------------------------------------
+## Reporting
 
-# Test Data Management
+Allure, generated in CI and published to Pages. Each run carries features,
+stories, titles, severities, per-step detail, and the API response attached to
+the step that made the call:
 
-The framework uses reusable test-data factories instead of hard-coded
-data.
-
-``` python
-user = UserFactory.create()
-```
-
-Dynamic data generation is supported through **Faker**.
-
-Structured test data is also supported through:
-
--   CSV
--   Excel
--   JSON
--   Pytest parameterization
-
-This keeps test data separate from test logic and makes scenarios easier
-to extend.
-
-------------------------------------------------------------------------
-
-# Configuration Management
-
-Environment-specific configuration is separated from test logic.
-
-Current configuration includes values such as:
-
--   `BASE_URL`
--   `API_BASE_URL`
--   `DUMMYJSON_API_BASE_URL`
--   `BROWSER`
--   `HEADLESS`
--   `DEFAULT_TIMEOUT`
--   `EXPECT_TIMEOUT`
-
-Example:
-
-``` text
-config/qa.env
-
-BASE_URL=https://automationexercise.com/
-API_BASE_URL=https://automationexercise.com/api
-BROWSER=chromium
-HEADLESS=True
-DEFAULT_TIMEOUT=10000
-EXPECT_TIMEOUT=20000
-```
-
-Environment files containing sensitive values should remain local and
-must not be committed to Git.
-
-In CI, environment-specific values are supplied through GitHub Actions
-configuration rather than hard-coding secrets into the workflow.
-
-------------------------------------------------------------------------
-
-# Logging & Diagnostics
-
-Centralized logging is implemented using **Loguru**.
-
-Logs help answer:
-
--   What action was being performed?
--   Which test was executing?
--   Which API request was sent?
--   Where did execution fail?
-
-For UI failures, screenshots are captured automatically using a Pytest
-test-result hook.
-
-Playwright tracing and video recording are also enabled through the test
-fixtures to make failures easier to investigate.
-
-Execution artifacts are organized by execution ID:
-
-``` text
-artifacts/
-+-- <execution_id>/
-    +-- logs/
-    +-- screenshots/
-    +-- reports/
-    +-- videos/
-    +-- traces/
-    +-- allure-results/
-```
-
-------------------------------------------------------------------------
-
-# Allure Reporting
-
-The framework uses **Allure** for interactive test reporting.
-
-Current capabilities include:
-
--   Features
--   Stories
--   Test titles
--   Test descriptions
--   Severity
--   Execution steps
--   API response attachments
--   Allure results generated during CI execution
--   HTML Allure report generated in CI
--   Allure results and report uploaded as GitHub Actions artifacts
-
-Example:
-
-``` python
+```python
 @allure.feature("Authentication")
 @allure.story("User Registration")
 @allure.title("Register a new user successfully")
 @allure.severity(allure.severity_level.CRITICAL)
 ```
 
-Execution steps can be represented using:
+Locally, `pytest -q` writes Allure results into this run's artifacts folder
+without needing `--alluredir`, and `allure serve artifacts/<run id>/allure-results`
+opens the report.
 
-``` python
-with allure.step("Register user"):
-    response, register_body = self.auth_api.register(user)
-```
+## CI
 
-API responses can also be attached to the report:
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml), on every push and pull
+request:
 
-``` python
-allure.attach(
-    response.text(),
-    name="Register API Response",
-    attachment_type=allure.attachment_type.JSON
-)
-```
-
-------------------------------------------------------------------------
-
-# GitHub Actions CI/CD
-
-The framework is integrated with **GitHub Actions**.
-
-The CI workflow currently performs:
-
-1.  Checkout
-2.  Docker image build, with layer caching between runs
-3.  Test execution inside the container, two parallel workers
-4.  Result summary written to the job summary
-5.  Allure history restored from the previous publish, so trends accumulate
-6.  Allure report generation
-7.  Publish to GitHub Pages: `main` to the site root, a pull request to `pr-<number>/`
-8.  Pull request comment with the counts and a link to that report
-9.  Artifact upload of the whole run for 14 days
+1. build the image, with layer caching between runs
+2. run the suite in the container, two workers
+3. write the pass/fail summary into the job summary
+4. restore the previous Allure history, so trends accumulate
+5. generate the report and publish it: `main` to the site root, a pull request
+   to `pr-<number>/`
+6. comment the counts on the pull request, editing one comment rather than
+   appending
+7. upload the whole run as an artifact for 14 days
 
 Everything after the test step runs even when tests fail, so a red run still
 publishes a report explaining why. The job then fails on the test outcome.
 
-The container runs as the host uid, so nothing on the mounted volume comes back
-owned by root. The results folder is named from `TEST_EXECUTION_ID`, set by the
-workflow, rather than searched for afterwards. See the note under Artifacts.
-
-The workflow runs for pushes and pull requests targeting the configured
-branches.
-
-The test suite has been validated locally and in GitHub Actions with
-**two parallel workers** using `pytest-xdist`.
-
-Example local execution:
-
-``` bash
-pytest -n 2 -q
-```
-
-CI execution:
-
-``` bash
-pytest -n 2 -q --alluredir=allure-results
-```
-
-> Because the UI tests use a public practice application, occasional
-> external-site issues such as transient availability or Cloudflare
-> responses can occur. These are investigated separately from
-> framework-level failures using screenshots, traces, logs, and Allure
-> artifacts.
-
-------------------------------------------------------------------------
-
-# CI Artifacts
-
-The workflow preserves test diagnostics even when tests fail.
-
-Important artifacts include:
-
-``` text
-allure-results/
-allure-report/
-```
-
-These are uploaded to the GitHub Actions run so that test results can be
-inspected after execution.
-
-This makes CI failures easier to diagnose without reproducing the run
-locally.
-
-------------------------------------------------------------------------
-
-# Getting Started
-
-## Prerequisites
-
--   Python 3.11 or newer, because `api/api_client.py` uses `enum.StrEnum`, which is a
-    3.11 addition. CI and the Docker image run 3.12.
--   pip
--   Git
--   Playwright
-
-## Clone the repository
-
-``` bash
-git clone https://github.com/Priya123z/AutomationExercise-Playwright-Python-Framework.git
-
-cd AutomationExercise-Playwright-Python-Framework
-```
-
-## Create a virtual environment
-
-``` bash
-python -m venv .venv
-```
-
-Activate it on Linux/macOS:
-
-``` bash
-source .venv/bin/activate
-```
-
-## Install dependencies
-
-``` bash
-pip install -r requirements.txt
-```
-
-Install Playwright browsers:
-
-``` bash
-playwright install
-```
-
-------------------------------------------------------------------------
-
-# Running Tests
-
-## Run the complete suite
-
-``` bash
-pytest -q
-```
-
-## Run UI tests
-
-``` bash
-pytest tests/UI -q
-```
-
-## Run API tests
-
-``` bash
-pytest tests/api -q
-```
-
-## Run a specific test file
-
-``` bash
-pytest tests/UI/test_login.py -q
-```
-
-## Run in parallel
-
-``` bash
-pytest -n 2 -q
-```
-
-## Run a specific browser
-
-``` bash
-pytest --browser=chromium
-pytest --browser=firefox
-pytest --browser=webkit
-```
-
-Or by environment, which is what CI uses:
-
-``` bash
-BROWSER=firefox pytest -q
-pytest --environment=uat        # qa, uat or prod
-```
-
-Both options were previously accepted and then ignored, because the config
-singleton was built at import time with the environment hardcoded. They take
-effect now, and an unknown value is rejected with a usage error rather than
-silently falling back.
-
-The Docker image installs Chromium only. Run the other two locally.
-
-------------------------------------------------------------------------
-
-# Allure Reports
-
-Generate Allure results while running the suite:
-
-``` bash
-pytest -q
-```
-
-`--alluredir` is not needed: `pytest_configure` points Allure at this run's
-artifacts folder.
-
-Generate and open the interactive report locally:
-
-``` bash
-allure serve allure-results
-```
-
-For CI executions, the generated Allure results and HTML report are
-available through the GitHub Actions workflow artifacts.
-
-------------------------------------------------------------------------
-
-# Design Principles
-
-### Scalability
-
-The framework structure makes it possible to add new tests without
-unnecessarily modifying existing components.
-
-### Maintainability
-
-Responsibilities are separated between tests, flows, pages, APIs,
-utilities, configuration, and validation.
-
-### Reusability
-
-Common functionality such as browser management, API communication, test
-data generation, logging, and validation is centralized.
-
-### Debuggability
-
-A failure should provide enough information to understand what happened
-without immediately reproducing it.
-
-This is supported through:
-
--   Logs
--   Screenshots
--   Videos
--   Traces
--   Allure reports
--   API response attachments
-
-### Separation of Concerns
-
-Tests describe **what** should be validated.
-
-Flows describe **business workflows**.
-
-Page objects describe **UI interactions**.
-
-API classes describe **API operations**.
-
-The API client handles **HTTP communication**.
-
-------------------------------------------------------------------------
-
-# Roadmap
-
-## Completed
-
--   [x] Framework setup
--   [x] Playwright UI automation
--   [x] Page Object Model
--   [x] Cross-browser support
--   [x] Browser Factory
--   [x] Configuration management
--   [x] Centralized logging
--   [x] Failure screenshots
--   [x] Playwright traces and video capture
--   [x] API automation
--   [x] API CRUD operations
--   [x] API chaining
--   [x] Test data factories
--   [x] CSV / Excel / JSON test data support
--   [x] JSON Schema validation
--   [x] HTTP / Business / Contract validation
--   [x] Allure reporting
--   [x] Allure steps
--   [x] API response attachments
--   [x] Execution artifact management
--   [x] GitHub Actions CI/CD
--   [x] Allure reporting in CI
--   [x] CI artifact management
--   [x] Environment variables in CI
--   [x] Parallel execution with pytest-xdist
-
--   [x] Docker execution in CI
--   [x] Published Allure report with trend history
--   [x] Pull request result comments
--   [x] Marker taxonomy with `--strict-markers`
-
-## Next
-
--   [ ] Database testing
--   [ ] Performance testing
--   [ ] Security testing
--   [ ] AI-assisted test generation and maintenance
-
-------------------------------------------------------------------------
-
-# Selecting tests
-
-``` bash
-pytest -m smoke        # 8 of 30, the critical path
-pytest -m api          # 17
-pytest -m ui           # 13
-pytest -m auth         # 13
-pytest -m "ui and cart"
-```
-
-Markers are declared in `pytest.ini` and enforced with `--strict-markers`, so a
-typo in a decorator fails collection instead of silently marking nothing.
-
-Note that `--strict-markers` validates decorators, not `-m` expressions. A typo
-in `-m` deselects everything and exits cleanly  check the collected count.
-
-------------------------------------------------------------------------
-
-# Artifacts, and one bug worth reading about
+## Artifacts, and one bug worth reading about
 
 Each run writes to `artifacts/<execution id>/`:
 
 ```
-artifacts/<id>/
-+-- allure-results/     raw results, plus environment.properties
-+-- allure-report/      generated report
-+-- reports/            pytest-html
-+-- logs/               framework.log
-+-- screenshots/        on failure
-+-- traces/             one Playwright trace per test
-+-- videos/
-+-- auth/               storage state, rebuilt per run
-+-- junit.xml
+allure-results/     raw results, plus environment.properties and categories.json
+allure-report/      generated report
+reports/            pytest-html
+logs/               framework.log
+screenshots/        on failure
+traces/             one Playwright trace per test
+videos/
+auth/               storage state, rebuilt per run
+junit.xml
 ```
 
-The execution id used to be a per-second timestamp taken when
-`ArtifactManager` was first imported. Under `pytest -n`, every xdist worker is a
-separate process, so two workers starting either side of a second boundary each
-created their own folder  and one of them ended up empty. CI selected a folder
-with `find -print -quit`, which returns directory order rather than the one with
+The execution id used to be a per-second timestamp taken when `ArtifactManager`
+was first imported. Under `pytest -n`, every xdist worker is a separate process,
+so two workers starting either side of a second boundary each created their own
+folder, and one of them ended up empty. CI selected a folder with
+`find -print -quit`, which returns directory order rather than the one with
 results in it, so the published report could contain half the run or none of it.
 It reproduced in two of three runs.
 
 The id now comes from `TEST_EXECUTION_ID` in the environment, which every worker
 inherits, and CI sets it up front so it knows the path without searching.
 
-Storage state also lives here rather than in the repository. It is created once
-per run and reused, where previously it was deleted and recreated for every test
-that asked for it, so the optimisation bought nothing.
+## Test accounts
 
-------------------------------------------------------------------------
+The UI login tests used to read six accounts out of a committed
+`test_data/users/users.json` and expect them to exist on the site. Those are
+accounts on a shared public practice app, so other people delete them and the
+site resets, and the tests failed for reasons that had nothing to do with this
+code. Worse, the signup flow appended every account it created back into that
+same committed file, so the suite grew and the working tree went dirty on every
+run.
 
-# Test accounts
+Accounts are created over the API now, handed to the test, and deleted
+afterwards: `registered_user` for a test that wants its own, `standing_account`
+once per run behind the authenticated fixtures. Accounts a run creates are
+recorded under its artifacts folder, not in the repository.
 
-The UI login tests used to read six accounts out of `test_data/users/users.json`
-and expect them to exist on the site, running the same login flow six times with
-different credentials. Those are accounts on a shared public practice app, so
-other people delete them and the site resets, and the tests failed for reasons
-that had nothing to do with this code.
+That is why the suite is 30 tests. The cases that went were the same three flows
+repeated across six accounts, which added no distinct assertions.
 
-A `registered_user` fixture now creates the account over the API, hands it to the
-test, and deletes it afterwards. One API call, always works, and the site is left
-as it was found. Data-driven parametrisation is still used where the data
-actually changes behaviour  payment details, product ids  rather than to run
-one code path repeatedly.
-
-That is why the suite is 30 tests rather than the 45 it collected before. The
-eighteen removed cases were the same three flows repeated across six accounts,
-which added no distinct assertions.
+Data-driven parametrisation is still used where the data changes behaviour:
+payment details, product ids.
 
 ## When the site will not talk to CI
 
 automationexercise.com sits behind Cloudflare, which serves an HTML challenge to
 datacenter addresses. From a GitHub runner that intermittently means every test
-touching the site fails, and the failures look like defects  element not found,
-`JSONDecodeError: Expecting value: line 1 column 1`. They are not defects, and no
-credential or retry fixes them, because the challenge comes before the site does.
+touching the site fails, and the failures look like defects: element not found,
+`JSONDecodeError: Expecting value: line 1 column 1`. They are not defects, and
+no credential or retry fixes them, because the challenge comes before the site
+does.
 
-`APIClient` also retries 429 and 5xx with backoff, up to four attempts. DummyJSON
-rate-limited a CI run and failed six tests for that reason alone. 4xx is never
-retried  the negative tests assert on those, and retrying a 404 would break them.
+Two things make the suite say what actually happened:
 
-Two changes so the suite says what happened when the challenge is the problem:
-
-- `APIClient` checks the body actually starts as JSON and raises with the status
-  and the first 160 characters if not, instead of letting `response.json()` fail
-  later with a decode error that names nothing.
+- `APIClient` checks the body starts as JSON and raises with the status and the
+  first 160 characters if not, instead of letting `response.json()` fail later
+  with a decode error that names nothing.
 - A preflight probe runs once at collection. If the site is not answering this
   host with JSON, the tests that need it are **skipped with the reason** and the
   DummyJSON tests still run. A skipped test with an explanation is honest; a
   failed test blames code that is fine.
 
-The run summary prints why, so nobody has to work it out from a traceback.
+`APIClient` also retries 429 and 5xx with backoff, up to four attempts.
+DummyJSON rate-limited a CI run and failed six tests for that reason alone. 4xx
+is never retried: the negative tests assert on those, and retrying a 404 would
+break them.
 
 ## Retries
 
 UI tests get two retries, applied in `pytest_collection_modifyitems`. Under
 parallel load the practice site occasionally answers a checkout click with
 neither the address page nor the register prompt, and no amount of waiting fixes
-that because nothing is coming. API tests get none, and a genuine regression
-fails every attempt, so this covers flakiness in the target rather than in this
-code. Reruns are reported in the run summary so they stay visible.
+that because nothing is coming. API tests get none, so a genuine regression
+fails every attempt. Reruns are reported in the run summary so they stay visible.
 
-------------------------------------------------------------------------
+## Known limitations
 
-# Known issues
+- The suite drives a public site. Cloudflare responses and outages will fail
+  runs for reasons unrelated to this code; retries cover the transient cases,
+  not an outage.
+- `uat` and `prod` point at the same URLs as `qa`, because the practice site has
+  only one deployment. They differ in timeouts and headless mode only.
+- `ArtifactManager` and `ConfigManager` are singletons built at import time, so
+  importing the package creates a run folder as a side effect. It is what makes
+  `pytest` work with no flags, and it is not free.
 
-Being honest about what is still wrong here:
+## Contact
 
--   `config/credentials.json` holds a plaintext password. It is read at runtime
-    by `credentials_manager`, so unlike the items below it cannot simply be
-    deleted; the suite needs it to log in. It is an account on a public practice
-    site rather than anything real, but the right shape is an env var with this
-    file as the example, and that has not been done yet.
--   Four things that were tracked despite being in `.gitignore`, because they were
-    committed before the rule existed, are no longer tracked: `utils/auth/qa/*.json`
-    (browser session state the framework stopped reading when storage state moved
-    into `artifacts/<run-id>/auth/`), `screenshots/` (ten failure screenshots from
-    August, superseded by `artifacts/<run-id>/screenshots/`), `.idea/` (which
-    leaked a local path), and `allure-2.45.0.tgz` (30 MB, referenced by nothing;
-    CI installs the Allure CLI from npm).
--   **All four are still in git history**, and the session cookies in them are
-    still readable there. Getting them out needs a history rewrite and a force
-    push, which is a deliberate decision rather than a cleanup, and has not been
-    done. Treat anything that was in those files as disclosed.
--   `uat` and `prod` point at the same URLs as `qa`, because the practice site has
-    only one deployment. They differ in timeouts and headless mode only.
--   The suite drives a public site. Cloudflare responses and outages will still
-    fail runs for reasons unrelated to this code; retries cover the transient
-    cases, not an outage.
--   `test_data/users/users.json` is still committed and still read by nothing
-    now that the login tests create their own accounts. It is kept as an example
-    of the reader layer, which does get exercised by the payment data.
+**Priya Bhagoriya**, SDET / AI Test Engineer
 
-------------------------------------------------------------------------
+- Portfolio: https://priya123z.github.io
+- LinkedIn: https://www.linkedin.com/in/priya-bhagoriya/
+- GitHub: https://github.com/Priya123z
 
-# Contributing
-
-This is primarily a personal/portfolio project, but suggestions and
-issues are welcome.
-
-If you identify an improvement in architecture, maintainability,
-reliability, or test coverage, feel free to open an issue or pull
-request.
-
-------------------------------------------------------------------------
-
-# Contact
-
-**Priya Bhagoriya**\
-SDET / AI Test Engineer
-
--   Portfolio: https://priya123z.github.io
-
--   LinkedIn: https://www.linkedin.com/in/priya-bhagoriya/
--   GitHub: https://github.com/Priya123z
-
-------------------------------------------------------------------------
-
-# License
-
-MIT
+MIT.
