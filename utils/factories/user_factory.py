@@ -1,13 +1,13 @@
 from faker import Faker
 from datetime import datetime
-from models.AutomationExercise_UI_API_Models.user import User
+from models.automationexercise import User
 
 
 class UserFactory:
 
     _fake = Faker()
     @classmethod
-    def create(cls) -> User:
+    def create(cls):
         return User(
             title=cls._fake.random_element(elements = ["Mr","Mrs"]),
             email= f"{cls._fake.user_name()}_{datetime.now():%Y%m%d%H%M%S}@example.com",

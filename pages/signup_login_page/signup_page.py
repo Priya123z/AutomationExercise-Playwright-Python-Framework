@@ -1,13 +1,7 @@
-from pathlib import Path
-
-
 from pages.base_page import BasePage
 from pages.signup_login_page.account_created_page import AccountCreatedPage
-from models.AutomationExercise_UI_API_Models.user import User
 from utils.artifact_manager import artifact
-from utils.factories.writer_factory import WriterFactory
-
-file_path = Path(__file__).parent.parent.parent.resolve()
+from utils import test_data
 
 
 class SignupPage(BasePage):
@@ -35,30 +29,30 @@ class SignupPage(BasePage):
         self._mobile = page.locator("#mobile_number")
         self._create_account_button = page.locator("[data-qa='create-account']")
 
-    def _select_title(self,title:str):
+    def _select_title(self,title):
         self.click(self.page.locator(f".radio-inline [value='{title}']"),f"Selecting {title}")
     def _fill_password(self,password):
         self.fill(self._password,password,"entering password")
-    def _select_date_of_birth(self,day:str):
+    def _select_date_of_birth(self,day):
         self.select_option(self._day_dropdown, day, description="selecting dateOfBirth")
-    def _select_months_of_birth(self,month:str):
+    def _select_months_of_birth(self,month):
         self.select_option(self._month_dropdown,month, description="selecting monthsOfBirth")
-    def _select_years_of_birth(self,year:str):
+    def _select_years_of_birth(self,year):
         self.select_option(self._year_dropdown,year,"selecting years")
 
-    def _check_newsletter(self,subscribe:bool):
+    def _check_newsletter(self,subscribe):
         if subscribe:
             self.click(self._newsletter_checkbox,"Subscribing newsletters")
 
-    def _check_special_offers(self,check_special_offers:bool):
+    def _check_special_offers(self,check_special_offers):
         if check_special_offers:
             self.click(self._special_offers_checkbox,"Special Offers")
 
-    def _fill_first_name(self,firstname:str):
+    def _fill_first_name(self,firstname):
         self.fill(self._firstname,firstname,"First name")
-    def _fill_last_name(self,lastname:str):
+    def _fill_last_name(self,lastname):
         self.fill(self._lastname,lastname,"Last name")
-    def _fill_company (self,company:str):
+    def _fill_company (self,company):
         self.fill(self._company,company,"Company")
     def _fill_address_one(self,address_one):
         self.fill(self._address_one,address_one,"Address line 1")
@@ -78,7 +72,7 @@ class SignupPage(BasePage):
         self.click(self._create_account_button,"Create account button click")
 
 
-    def create_account(self, user:User)->AccountCreatedPage:
+    def create_account(self, user):
         self._select_title(user.title)
         self._fill_password(user.password)
         self._select_date_of_birth(user.date_of_birth)
@@ -103,7 +97,7 @@ class SignupPage(BasePage):
         # test_data/users/users.json, which meant every run grew the seed data, changed
         # the collected test count and left the working tree dirty.
         created_users = artifact.execution_dir / "registered_users.json"
-        WriterFactory.get_writer(created_users).append(created_users, user)
+        test_data.append(created_users, user)
         return account_created_page
 
     def is_loaded(self):

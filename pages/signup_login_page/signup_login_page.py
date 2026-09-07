@@ -1,5 +1,3 @@
-from __future__ import annotations
-from models.AutomationExercise_UI_API_Models.user import User
 from pages.base_page import BasePage
 
 class SignUpLoginPage(BasePage):
@@ -22,24 +20,24 @@ class SignUpLoginPage(BasePage):
         self._login_button = page.locator("[data-qa='login-button']")
 
 
-    def is_loaded(self)->None:
+    def is_loaded(self):
         self.wait_for_visibility(self._login_heading,"Login Heading")
         self.wait_for_visibility(self._signup_heading,"Signup Heading")
 
-    def _fill_login_email(self,email:str):
+    def _fill_login_email(self,email):
         self.fill(self._login_email,value=email,description="Login Email")
-    def _fill_login_password(self,password:str):
+    def _fill_login_password(self,password):
         self.fill(self._login_password,value=password,description="Login Password")
     def _click_login_button(self):
         self.click(self._login_button, "Click on Login Button")
-    def _fill_signup_name(self,name:str):
+    def _fill_signup_name(self,name):
         self.fill(self._signup_name,value=name,description="Signup Name")
-    def _fill_signup_email(self,email:str):
+    def _fill_signup_email(self,email):
         self.fill(self._signup_email,value=email,description="Signup Email")
     def _click_signup_button(self):
         self.click(self._signup_button,"Click on Signup")
 
-    def login(self,email: str, password: str)->HomePage:
+    def login(self,email, password):
 
         from pages.home_page import HomePage
 
@@ -50,7 +48,7 @@ class SignUpLoginPage(BasePage):
         home.is_loaded()
         return home
 
-    def start_signup(self,user:User):
+    def start_signup(self,user):
         from pages.signup_login_page.signup_page import SignupPage
         self._fill_signup_name(user.first_name)
         self._fill_signup_email(user.email)

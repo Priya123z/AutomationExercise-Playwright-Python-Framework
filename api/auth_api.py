@@ -1,19 +1,13 @@
-from playwright.sync_api import APIResponse
-
-from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.AutomationExercise_UI_API_Models.login_response import LoginResponse
-from models.AutomationExercise_UI_API_Models.register_response import RegisterResponse
-from models.AutomationExercise_UI_API_Models.user import User
 from utils.logger import logger
 
 
 class AuthAPI:
 
-    def __init__(self, api_client: APIClient):
+    def __init__(self, api_client):
         self.api_client = api_client
 
-    def register(self, user: User)->tuple[APIResponse, RegisterResponse]:
+    def register(self, user):
         payload = {
             "name": f"{user.first_name} {user.last_name}",
             "email": user.email,
@@ -42,13 +36,13 @@ class AuthAPI:
             form=payload)
 
 
-        body = RegisterResponse(**response.json())
+        body = response.json()
 
         return response,body
 
 
 
-    def verify_login(self, user: User)->tuple[APIResponse, LoginResponse]:
+    def verify_login(self, user):
 
         payload = {
             "email": user.email,
@@ -62,11 +56,11 @@ class AuthAPI:
             form=payload
         )
 
-        body = LoginResponse(**response.json())
+        body = response.json()
 
         return response,body
 
-    def delete_user(self, user: User)->tuple[APIResponse, RegisterResponse]:
+    def delete_user(self, user):
         payload = {
             "email": user.email,
             "password": user.password,
@@ -78,7 +72,7 @@ class AuthAPI:
         response = self.api_client.delete(endpoint=Endpoints.DELETE_ACCOUNT,
                                           form=payload)
 
-        body = RegisterResponse(**response.json())
+        body = response.json()
 
 
 
@@ -86,11 +80,11 @@ class AuthAPI:
 
         return response,body
 
-    def verify_login_with_payload(self, payload: dict) -> tuple[APIResponse, LoginResponse]:
+    def verify_login_with_payload(self, payload):
 
         response = self.api_client.post(endpoint=Endpoints.VERIFY_LOGIN,
                                         form=payload)
 
-        body = LoginResponse(**response.json())
+        body = response.json()
 
         return response, body

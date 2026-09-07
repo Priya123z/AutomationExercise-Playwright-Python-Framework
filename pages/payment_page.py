@@ -1,5 +1,3 @@
-from __future__ import annotations
-from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
 from pages.base_page import BasePage
 from pages.order_confirmation_page import OrderConfirmationPage
 
@@ -20,7 +18,7 @@ class PaymentPage(BasePage):
     def is_loaded(self):
         self.wait_for_visibility(self._heading, "Payment Page")
 
-    def enter_payment_details(self, payment: PaymentDetails) -> None:
+    def enter_payment_details(self, payment):
         self.fill(self._name, payment.name,"Name On Card")
         self.fill(self._card, payment.card_number,"Card Number")
         self.fill(self._cvc, payment.cvc,"CVC Number")
@@ -29,7 +27,7 @@ class PaymentPage(BasePage):
 
 
 
-    def confirm_order(self)->OrderConfirmationPage:
+    def confirm_order(self):
         self.click(self._confirm, "Confirm Order")
 
         confirmation = OrderConfirmationPage(self.page)

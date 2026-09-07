@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 from playwright.sync_api import expect
 from pages.base_page import BasePage
@@ -14,14 +13,14 @@ class CartModal(BasePage):
         self._continue_shopping = page.get_by_role("button",name = "Continue Shopping")
         self._view_cart = page.get_by_role("link",name="View Cart")
 
-    def is_loaded(self)->None:
+    def is_loaded(self):
         self.wait_for_visibility(self._modal, "Cart Modal")
         self.wait_for_visibility(self._view_cart, "View Cart")
 
     def wait_until_loaded(self):
         expect(self._modal).to_be_visible(timeout=config.expect_timeout)
 
-    def continue_shopping(self)->ProductPage:
+    def continue_shopping(self):
         from pages.product_page import ProductPage
 
         self.click(self._continue_shopping,"Continue shopping")
@@ -29,7 +28,7 @@ class CartModal(BasePage):
         return products
 
 
-    def view_cart(self)->CartPage:
+    def view_cart(self):
         self.click(self._view_cart,"View Cart")
         cart = CartPage(self.page)
         cart.is_loaded()

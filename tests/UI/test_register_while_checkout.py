@@ -1,15 +1,14 @@
-from __future__ import annotations
 from pathlib import Path
 
 import pytest
 
-from models.AutomationExercise_UI_API_Models.payment_detail import PaymentDetails
+from models.automationexercise import PaymentDetails
 from pages.home_page import HomePage
-from utils.test_data import TestData
+from utils import test_data
 
 filepath = Path(__file__).parent.parent.parent.resolve()
 
-payments = TestData.load(filepath / "test_data" / "payments" / "payment.json", model=PaymentDetails)
+payments = test_data.load(filepath / "test_data" / "payments" / "payment.json", model=PaymentDetails)
 
 
 @pytest.mark.ui

@@ -1,4 +1,4 @@
-from models.AutomationExercise_UI_API_Models.user import User
+from models.automationexercise import User
 from pages.home_page import HomePage
 from utils.factories.user_factory import UserFactory
 
@@ -8,7 +8,7 @@ class RegisterFlow:
     def __init__(self, page):
         self.page = page
 
-    def register(self, user: User | None = None) -> tuple[HomePage, User]:
+    def register(self, user = None) -> tuple[HomePage, User]:
 
         user = user or UserFactory.create()
 

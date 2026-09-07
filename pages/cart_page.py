@@ -1,7 +1,6 @@
-from __future__ import annotations
-from playwright.sync_api import Locator, expect
+from playwright.sync_api import expect
 from components.checkout_login_modal import CheckoutModal
-from models.AutomationExercise_UI_API_Models.cart_product import CartProduct
+from models.automationexercise import CartProduct
 from pages.base_page import BasePage
 
 
@@ -13,14 +12,14 @@ class CartPage(BasePage):
         self._empty_cart = page.locator("#empty_cart")
         self._proceed_to_checkout = page.locator("a.check_out")
 
-    def _get_cart_row(self,product_name:str)->Locator:
+    def _get_cart_row(self,product_name):
         return self._cart_rows.filter(
             has=self.page.locator(".cart_description h4 a",has_text=product_name))
 
-    def is_loaded(self)->None:
+    def is_loaded(self):
         self.wait_for_visibility(self._cart_table,"Cart Table")
 
-    def get_product(self, product_name: str) -> CartProduct:
+    def get_product(self, product_name):
         row = self._get_cart_row(product_name)
         return CartProduct(
             name=row.locator(".cart_description h4 a").inner_text(),
@@ -31,23 +30,23 @@ class CartPage(BasePage):
         )
 
 
-    def has_product(self, product_name: str) -> bool:
+    def has_product(self, product_name):
         row = self._get_cart_row(product_name)
         return row.is_visible()
 
-    def remove_product(self, product_name: str) -> None:
+    def remove_product(self, product_name):
         row = self._get_cart_row(product_name)
         self.click(row.locator(".cart_quantity_delete"),f"Removing {product_name}")
         row.wait_for(state="detached")
 
 
-    def is_empty(self) -> bool:
+    def is_empty(self):
         return self.is_visible(
             self._empty_cart,
             "Empty Cart"
         )
 
-    def products(self) -> list[CartProduct]:
+    def products(self):
         products = []
 
         for i in range(self._cart_rows.count()):
@@ -67,7 +66,7 @@ class CartPage(BasePage):
 
 
 
-    def proceed_to_checkout(self) -> CheckoutModal | CheckoutPage:
+    def proceed_to_checkout(self):
         from pages.checkout_page import CheckoutPage
 
         self.click(self._proceed_to_checkout, "Proceed To Checkout")

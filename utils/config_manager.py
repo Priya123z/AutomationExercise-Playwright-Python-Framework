@@ -20,30 +20,25 @@ class ConfigManager:
 
         return cls._instance
 
-    def __init__(self, env="qa", browser=None):
+    def __init__(self, env="qa"):
 
         if getattr(self, "_initialized", False):
             return
 
         self.environment = env
 
-        self._browser_override = browser
-
         self._load()
 
         self._initialized = True
 
-    def configure(self, env=None, browser=None):
-        # Called from pytest_configure so --environment / --browser actually take effect.
-        # Everything imports the singleton at module load, so we reload in place rather
-        # than building a second instance.
+    def configure(self, env=None):
+        # Called from pytest_configure so --environment actually takes effect.
+        # Everything imports the singleton at module load, so we reload in place
+        # rather than building a second instance.
         if env:
             if env not in ENVIRONMENTS:
                 raise ValueError(f"Unsupported environment: {env}. Expected one of {ENVIRONMENTS}.")
             self.environment = env
-
-        if browser:
-            self._browser_override = browser
 
         self._load()
 
@@ -78,7 +73,7 @@ class ConfigManager:
 
         self.api_base_url = self._setting("API_BASE_URL")
 
-        self.browser = self._browser_override or self._setting("BROWSER")
+        self.browser = self._setting("BROWSER")
 
         self.headless = self._setting("HEADLESS")
 

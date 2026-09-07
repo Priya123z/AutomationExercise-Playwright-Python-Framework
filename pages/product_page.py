@@ -1,4 +1,4 @@
-from playwright.sync_api import Locator, expect
+from playwright.sync_api import expect
 
 from components.cart_modal import CartModal
 from pages.base_page import BasePage
@@ -13,15 +13,15 @@ class ProductPage(BasePage):
         self._search_products_button = page.locator("#submit_search")
         self._product_cards = page.locator(".product-image-wrapper")
 
-    def is_loaded(self) -> None:
+    def is_loaded(self):
         self.wait_for_visibility(self._products_heading, "Products Heading")
         self.wait_for_visibility(self._search_products_input, "Search Products")
 
-    def search_product(self, value: str) -> None:
+    def search_product(self, value):
         self.fill(self._search_products_input,value,"Search Product")
         self.click(self._search_products_button,"Search click")
 
-    def is_product_displayed(self, value: str) -> bool:
+    def is_product_displayed(self, value):
         product = self._product_cards.filter(has=self.page.locator("p", has_text=value)).first
 
         product_name = product.locator("p", has_text=value).first
@@ -29,10 +29,10 @@ class ProductPage(BasePage):
         expect(product_name).to_be_visible()
         return product_name.is_visible()
 
-    def _get_product_card(self, product_name: str) -> Locator:
+    def _get_product_card(self, product_name):
         return self._product_cards.filter(has=self.page.locator(".productinfo p", has_text=product_name)).first
 
-    def open_product(self, product_name: str) -> ProductDetailsPage:
+    def open_product(self, product_name):
         product = self._get_product_card(product_name)
 
         self.click(product.get_by_role("link", name="View Product"),f"Opening {product_name}")
@@ -42,7 +42,7 @@ class ProductPage(BasePage):
 
         return details
 
-    def add_to_cart(self, product_name: str) -> CartModal:
+    def add_to_cart(self, product_name):
         product = self._get_product_card(product_name)
 
         product.scroll_into_view_if_needed()

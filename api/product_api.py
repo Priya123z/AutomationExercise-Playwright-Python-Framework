@@ -3,8 +3,7 @@ from dataclasses import asdict
 
 from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.DummyJsonAPIModels.create_product_request import CreateProductRequest
-from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
+from models.dummyjson import CreateProductRequest, UpdateProductRequest
 from utils.logger import logger
 
 
@@ -21,7 +20,7 @@ class ProductAPI:
             Endpoints.PRODUCTS
         )
 
-    def get_product_by_id(self, product_id: int):
+    def get_product_by_id(self, product_id):
 
         logger.info(f"Getting product {product_id}")
 
@@ -38,7 +37,7 @@ class ProductAPI:
             data=asdict(request),
         )
 
-    def update_product(self, product_id: int, request:UpdateProductRequest):
+    def update_product(self, product_id, request:UpdateProductRequest):
 
         logger.info(f"Updating Product: {product_id}")
 
@@ -46,7 +45,7 @@ class ProductAPI:
 
         return self.api_client.patch(endpoint, data=asdict(request))
 
-    def delete_product(self, product_id: int):
+    def delete_product(self, product_id):
 
         logger.info(f"Deleting Product: {product_id}")
 

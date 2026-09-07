@@ -14,8 +14,8 @@ class AuthNegativeFlow:
         user.password = "InvalidPassword123"
         _,login_body = self.auth_api.verify_login(user)
 
-        assert login_body.responseCode == 404
-        assert login_body.message == "User not found!"
+        assert login_body["responseCode"] == 404
+        assert login_body["message"] == "User not found!"
 
     def verify_login_with_unregistered_user(self):
         user = UserFactory.create()
@@ -24,8 +24,8 @@ class AuthNegativeFlow:
 
         _,login_body = self.auth_api.verify_login(user)
 
-        assert login_body.responseCode == 404
-        assert login_body.message == "User not found!"
+        assert login_body["responseCode"] == 404
+        assert login_body["message"] == "User not found!"
 
     def register_an_existing_user(self):
 
@@ -33,8 +33,8 @@ class AuthNegativeFlow:
 
         _,register_body = self.auth_api.register(user)
 
-        assert register_body.responseCode == 400
-        assert register_body.message == "Email already exists!"
+        assert register_body["responseCode"] == 400
+        assert register_body["message"] == "Email already exists!"
 
         return register_body
 
@@ -44,8 +44,8 @@ class AuthNegativeFlow:
         }
         _,login_body = self.auth_api.verify_login_with_payload(payload)
 
-        assert login_body.responseCode == 400
-        assert login_body.message == "Bad request, email or password parameter is missing in POST request."
+        assert login_body["responseCode"] == 400
+        assert login_body["message"] == "Bad request, email or password parameter is missing in POST request."
         return login_body
 
     def login_with_empty_password(self):
@@ -53,8 +53,8 @@ class AuthNegativeFlow:
             "email": "abc@test.com"
         }
         _,login_body = self.auth_api.verify_login_with_payload(payload)
-        assert login_body.responseCode == 400
-        assert login_body.message == "Bad request, email or password parameter is missing in POST request."
+        assert login_body["responseCode"] == 400
+        assert login_body["message"] == "Bad request, email or password parameter is missing in POST request."
         return login_body
 
     def verify_login_with_missing_credentials(self):
@@ -62,8 +62,8 @@ class AuthNegativeFlow:
 
         _, login_body = self.auth_api.verify_login_with_payload(payload)
 
-        assert login_body.responseCode == 400
-        assert login_body.message == "Bad request, email or password parameter is missing in POST request."
+        assert login_body["responseCode"] == 400
+        assert login_body["message"] == "Bad request, email or password parameter is missing in POST request."
 
 
 
@@ -74,15 +74,15 @@ class AuthNegativeFlow:
         # First delete should succeed
         _,delete_body = self.auth_api.delete_user(user)
 
-        assert delete_body.responseCode == 200
-        assert delete_body.message == "Account deleted!"
+        assert delete_body["responseCode"] == 200
+        assert delete_body["message"] == "Account deleted!"
 
 
         _,delete_body = self.auth_api.delete_user(user)
         # Second Delete should throw an error
 
-        assert delete_body.responseCode == 404
-        assert delete_body.message == "Account not found!"
+        assert delete_body["responseCode"] == 404
+        assert delete_body["message"] == "Account not found!"
         return user,delete_body
 
 

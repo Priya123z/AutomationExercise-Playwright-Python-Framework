@@ -1,6 +1,5 @@
-from __future__ import annotations
 from pages.base_page import BasePage
-from models.DummyJsonAPIModels.product import Product
+from models.automationexercise import Product
 
 class ProductDetailsPage(BasePage):
 
@@ -17,7 +16,7 @@ class ProductDetailsPage(BasePage):
         self._quantity = page.locator("#quantity")
 
 
-    def is_loaded(self)->None:
+    def is_loaded(self):
         self.wait_for_visibility(self._product_name, "Product Name")
         self.wait_for_visibility(self._category, "Product Category")
         self.wait_for_visibility(self._price, "Product Price")
@@ -26,7 +25,7 @@ class ProductDetailsPage(BasePage):
         self.wait_for_visibility(self._brand, "Product Brand")
 
 
-    def get_product(self)->Product:
+    def get_product(self):
         return Product(
             name = self.get_text(self._product_name, "Product Name"),
             category = self.get_text(self._category, "Product Category"),
@@ -37,14 +36,14 @@ class ProductDetailsPage(BasePage):
 
         )
 
-    def add_to_cart(self) -> CartModal:
+    def add_to_cart(self):
         from components.cart_modal import CartModal
         self.click(self._add_to_cart, "Add Product To Cart")
         modal = CartModal(self.page)
         modal.is_loaded()
         return modal
 
-    def set_quantity(self,quantity:int)->None:
+    def set_quantity(self,quantity):
         self.fill(self._quantity,str(quantity),"Product Quantity")
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from models.DummyJsonAPIModels.product import Product
+from models.automationexercise import Product
 from pages.home_page import HomePage
 
 

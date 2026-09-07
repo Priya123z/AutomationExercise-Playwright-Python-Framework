@@ -1,6 +1,6 @@
 import pytest
 
-from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
+from models.dummyjson import UpdateProductRequest
 
 
 @pytest.mark.api

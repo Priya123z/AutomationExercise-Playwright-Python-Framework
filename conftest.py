@@ -1,4 +1,3 @@
-from __future__ import annotations
 import platform
 import shutil
 import urllib.request
@@ -8,9 +7,7 @@ from playwright.sync_api import expect, sync_playwright
 from api.product_api import ProductAPI
 from flows.API_Flow.auth_flow import AuthFlow
 from flows.API_Flow.auth_negative_flow import AuthNegativeFlow
-from models.DummyJsonAPIModels.create_product_request import CreateProductRequest
-from models.DummyJsonAPIModels.login_request import LoginRequest
-from models.DummyJsonAPIModels.update_product_request import UpdateProductRequest
+from models.dummyjson import CreateProductRequest, LoginRequest, UpdateProductRequest
 from utils.artifact_manager import artifact
 from utils.authentication.authentication_manager import auth
 from utils.factories.browser_factory import BrowserFactory
@@ -23,7 +20,7 @@ from utils.config_manager import CONFIG_DIR
 from api.api_client import APIClient
 from api.auth_api import AuthAPI
 from api.dummyjson_auth_api import DummyJsonAuthAPI
-from utils.test_data import TestData
+from utils import test_data
 from flows.API_Flow.product_flow import ProductFlow
 
 
@@ -43,7 +40,6 @@ def playwright():
 
 @pytest.fixture(scope="session")
 def browser(playwright):
-    # auth.clear_all_storage_states()
     browser = BrowserFactory.create_browser(playwright=playwright, config=framework_config)
     yield browser
     logger.info("Closing Browser")
@@ -109,11 +105,11 @@ def page(context):
 # -------------------------
 
 @pytest.fixture(scope="function")
-def authenticated_context(browser, request):
+def authenticated_context(browser, request, standing_account):
 
     logger.info("Creating Authenticated Browser Context")
 
-    storage_state = auth.get_storage_state(browser=browser,role="user1")
+    storage_state = auth.get_storage_state(browser=browser, user=standing_account)
 
     context = browser.new_context(storage_state=storage_state,record_video_dir=artifact.videos_dir)
 
@@ -157,10 +153,7 @@ def authenticated_page(authenticated_context):
 
 def pytest_configure(config):
     try:
-        framework_config.configure(
-            env=config.getoption("--environment"),
-            browser=config.getoption("--browser"),
-        )
+        framework_config.configure(env=config.getoption("--environment"))
     except (ValueError, FileNotFoundError) as exc:
         raise pytest.UsageError(str(exc))
 
@@ -181,7 +174,7 @@ def _write_allure_categories():
     """Copy the failure taxonomy into the results so Allure can classify.
 
     Without this the report's Categories panel is empty and every failure looks
-    alike. Most of what has actually gone wrong here was not a product defect 
+    alike. Most of what has actually gone wrong here was not a product defect:
     the practice site challenges datacenter addresses and the DummyJSON API rate
     limits a busy runner, and those two deserve to be named rather than sitting
     in the same bucket as a real regression.
@@ -322,8 +315,12 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_addoption(parser):
-    parser.addoption("--browser",action="store",default=None,help="Browser to execute tests: chromium, firefox, webkit")
-    parser.addoption("--environment",action="store",default="qa",help="Environment to execute tests: qa, uat, prod")
+    # No --browser here. pytest-playwright registers an option by that name, and
+    # anyone who has that plugin installed got an argparse conflict before
+    # collection even started, with nothing explaining why. BROWSER in the
+    # environment is what CI and the README already use.
+    parser.addoption("--environment", action="store", default="qa",
+                     help="Environment to execute tests: qa, uat, prod")
 
 
 # -------------------------
@@ -404,9 +401,8 @@ def auth_negative_flow(auth_api,auth_flow):
     return AuthNegativeFlow(auth_api,auth_flow)
 
 
-@pytest.fixture
-def registered_user(auth_api):
-    """A real account, created over the API and removed afterwards.
+def _create_account(auth_api):
+    """Register a throwaway account over the API and hand it back.
 
     The UI login tests used to read six accounts out of test_data/users/users.json
     and expect them to exist on the site. They are accounts on a shared public
@@ -418,15 +414,37 @@ def registered_user(auth_api):
 
     response, body = auth_api.register(user)
     assert response.status == 200, f"could not create the test account: {response.text()}"
-    assert body.responseCode == 201, body.message
+    assert body["responseCode"] == 201, body["message"]
 
-    yield user
+    return user
 
+
+def _delete_account(auth_api, user):
     # Leave the practice site as we found it.
     try:
         auth_api.delete_user(user)
     except Exception as exc:
         logger.warning(f"could not delete {user.email}: {exc}")
+
+
+@pytest.fixture
+def registered_user(auth_api):
+    """An account of this test's own, removed when it finishes."""
+    user = _create_account(auth_api)
+    yield user
+    _delete_account(auth_api, user)
+
+
+@pytest.fixture(scope="session")
+def standing_account(auth_api):
+    """One account for the whole run, behind the authenticated fixtures.
+
+    Session-scoped on purpose: the storage state it produces is written once and
+    reused, which is the point of AuthManager.
+    """
+    user = _create_account(auth_api)
+    yield user
+    _delete_account(auth_api, user)
 
 
 # -------------------------
@@ -439,15 +457,15 @@ TEST_DATA_DIR = Path(__file__).parent / "test_data"/ "api"
 
 @pytest.fixture(scope="session")
 def login_request():
-    return TestData.load(filepath = TEST_DATA_DIR/"login.json",model = LoginRequest)
+    return test_data.load(filepath = TEST_DATA_DIR/"login.json",model = LoginRequest)
 
 @pytest.fixture(scope="session")
 def create_product_request():
-    return TestData.load(filepath = TEST_DATA_DIR/"create_product.json",model = CreateProductRequest)
+    return test_data.load(filepath = TEST_DATA_DIR/"create_product.json",model = CreateProductRequest)
 
 @pytest.fixture(scope="session")
 def update_product_request():
-    return TestData.load(filepath = TEST_DATA_DIR/"update_product.json",model = UpdateProductRequest)[0]
+    return test_data.load(filepath = TEST_DATA_DIR/"update_product.json",model = UpdateProductRequest)[0]
 
 
 #------------------------------

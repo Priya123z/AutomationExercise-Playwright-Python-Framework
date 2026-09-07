@@ -1,6 +1,6 @@
 import pytest
 
-from models.AutomationExercise_UI_API_Models.cart_product import CartProduct
+from models.automationexercise import CartProduct
 from pages.home_page import HomePage
 
 

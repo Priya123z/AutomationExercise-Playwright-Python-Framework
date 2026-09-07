@@ -33,8 +33,8 @@ class AuthFlow:
         with allure.step("Validating business response"):
             # 2. Business Validation
             allure.attach(response.text(),name="Register API Response",attachment_type=allure.attachment_type.JSON)
-            assert register_body.responseCode == 201
-            assert register_body.message == "User created!"
+            assert register_body["responseCode"] == 201
+            assert register_body["message"] == "User created!"
 
         with allure.step("Validating JSON Schema"):
             # 3. Contract Validation
@@ -62,8 +62,8 @@ class AuthFlow:
         with allure.step("Validating business response"):
             allure.attach(response.text(),name="Login API response",attachment_type=allure.attachment_type.JSON)
             # 2. Business Validation
-            assert login_body.responseCode == 200
-            assert login_body.message == "User exists!"
+            assert login_body["responseCode"] == 200
+            assert login_body["message"] == "User exists!"
 
         with allure.step("Validating JSON Schema"):
             #3. Contract validation
@@ -88,8 +88,8 @@ class AuthFlow:
 
         with allure.step("Validate business response"):
             allure.attach(response.text(),name="Deleting User API response",attachment_type=allure.attachment_type.JSON)
-            assert delete_body.responseCode == 200
-            assert delete_body.message == "Account deleted!"
+            assert delete_body["responseCode"] == 200
+            assert delete_body["message"] == "Account deleted!"
 
         with allure.step("Validate JSON schema"):
             SchemaValidator.validate_response(response,"auth/delete_user_schema.json")

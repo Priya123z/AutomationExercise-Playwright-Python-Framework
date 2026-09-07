@@ -1,10 +1,9 @@
-from __future__ import annotations
 import os
-from pathlib import Path
+import re
+
+from flows.UI_Flow.login_flow import LoginFlow
 from utils.artifact_manager import artifact
 from utils.config_manager import config
-from utils.credentials_manager import credential_manager
-from flows.UI_Flow.login_flow import LoginFlow
 
 class AuthManager:
     _instance = None
@@ -33,31 +32,23 @@ class AuthManager:
             parents=True,
             exist_ok=True)
 
-    def _storage_state_path(self, role: str) -> Path:
-        return self.auth_directory / f"{role}.json"
+    def _storage_state_path(self, email):
+        slug = re.sub(r"[^A-Za-z0-9]+", "_", email).strip("_")
+        return self.auth_directory / f"{slug}.json"
 
-    def _storage_state_exists(self, role: str) -> bool:
-        """
-        Checks whether the storage state already exists.
-        """
-        return self._storage_state_path(role).exists()
-
-    def _create_storage_state(self, browser, role: str) -> Path:
+    def _create_storage_state(self, browser, user):
 
         context = browser.new_context()
         try:
             page = context.new_page()
             page.goto(config.base_url)
-            login_page = LoginFlow(page)
+            LoginFlow(page).login(user.email, user.password)
 
-            credentials = credential_manager.get_credentials(role)
-            login_page.login(credentials.username, credentials.password)
-
-            storage_state = self._storage_state_path(role)
+            storage_state = self._storage_state_path(user.email)
 
             # Under xdist two workers can land here together. Write to a process-unique
             # file and rename, so nobody ever reads a half-written state.
-            partial = storage_state.with_name(f"{role}.{os.getpid()}.partial")
+            partial = storage_state.with_name(f"{storage_state.stem}.{os.getpid()}.partial")
             context.storage_state(path=partial)
             partial.replace(storage_state)
 
@@ -65,23 +56,20 @@ class AuthManager:
         finally:
             context.close()
 
-    def clear_all_storage_states(self):
-        """
-        Deletes every storage state for the current environment.
-        """
-        for file in self.auth_directory.glob("*.json"):
-            file.unlink()
+    def get_storage_state(self, browser, user):
+        """Storage state for an account, logging in once per execution.
 
-    def get_storage_state(self, browser, role: str)->Path:
-        """
-        Returns the storage state for a role, logging in once per execution.
+        The account is created over the API by the fixture that asks for this, so
+        there is no password in the repository and nothing to configure before a
+        first run. There used to be a config/credentials.json holding a real
+        password for a shared practice site.
         """
 
-        storage_state = self._storage_state_path(role)
+        storage_state = self._storage_state_path(user.email)
 
         if storage_state.exists():
             return storage_state
 
-        return self._create_storage_state(browser, role)
+        return self._create_storage_state(browser, user)
 
 auth = AuthManager()

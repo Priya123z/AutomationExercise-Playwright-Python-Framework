@@ -1,18 +1,17 @@
-import re
 import datetime
-from playwright.sync_api import Page, expect, Locator
-from loguru import logger
 
-from utils.config_manager import config
+from loguru import logger
+from playwright.sync_api import expect
+
 from utils.screenshot import Screenshot
 
 
 class BasePage:
 
-    def __init__(self, page: Page):
+    def __init__(self, page):
         self.page = page
 
-    def _execute_action(self, action, operation: str,locator:Locator | None = None , description: str|None = None):
+    def _execute_action(self, action, operation, locator=None, description=None):
         logger.info(f"{operation}: {description}")
         try:
             result = action()
@@ -27,7 +26,7 @@ class BasePage:
                 e._screenshot_taken = True
             raise
 
-    def click(self, locator:Locator,description:str):
+    def click(self, locator, description):
         self.wait_for_visibility(locator,description)
         return self._execute_action(
             action=lambda: locator.click(),
@@ -36,7 +35,7 @@ class BasePage:
             description= description
         )
 
-    def fill(self, locator:Locator, value: str,description:str):
+    def fill(self, locator, value, description):
         self.wait_for_visibility(locator,description)
         return self._execute_action(
             action=lambda:locator.fill(value),
@@ -45,7 +44,7 @@ class BasePage:
             description= description
         )
 
-    def select_option(self,locator:Locator,value:str,description:str,):
+    def select_option(self, locator, value, description):
         self.wait_for_visibility(locator,description)
         return self._execute_action(
             action=lambda:locator.select_option(value=value),
@@ -54,7 +53,7 @@ class BasePage:
             description= description
 
         )
-    def get_text(self, locator:Locator,description:str):
+    def get_text(self, locator, description):
         self.wait_for_visibility(locator,description)
 
         return self._execute_action(
@@ -63,17 +62,8 @@ class BasePage:
             locator=locator,
             description= description
         )
-    def get_all_text(self,locator:Locator,description:str):
-        self.wait_for_visibility(locator,description)
-        return  self._execute_action(
-            action = lambda :locator.all_inner_texts(),
-            operation="Get All Text",
-            locator=locator,
-            description= description
-        )
 
-
-    def is_visible(self, locator:Locator,description:str):
+    def is_visible(self, locator, description):
         return self._execute_action(
             action=lambda: locator.is_visible(),
             operation="Is Visible",
@@ -81,7 +71,7 @@ class BasePage:
             description= description
         )
 
-    def wait_for_visibility(self, locator:Locator,description:str):
+    def wait_for_visibility(self, locator, description):
 
         return self._execute_action(
             action=lambda:expect(locator).to_be_visible(),
@@ -90,29 +80,6 @@ class BasePage:
             description= description
         )
 
-    def get_current_url(self):
-        return self._execute_action(
-            action=lambda: self.page.url,
-            operation="Get Current URL",
-
-            description="Current Browser URL"
-        )
-
-    def screenshot(self, name: str):
+    def screenshot(self, name):
         logger.info(f"Saving screenshot {name}")
         Screenshot.capture(self.page, name)
-
-    def wait_for_url_pattern(self,pattern:str,description:str):
-
-        return self._execute_action(
-            action=lambda: expect(self.page).to_have_url(re.compile(pattern),timeout=config.expect_timeout),
-            operation="Wait for URL pattern",
-            description= description
-        )
-
-    def wait_for_exact_url(self,url:str,description:str):
-            return self._execute_action(
-                action=lambda: expect(self.page).to_have_url(url),
-                operation="Wait for Exact URL",
-                description=description
-            )

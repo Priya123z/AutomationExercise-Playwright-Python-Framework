@@ -46,7 +46,4 @@ class ArtifactManager:
     def html_report(self):
         return self.reports_dir / "report.html"
 
-    @property
-    def allure_report_dir(self):
-        return self.execution_dir / "allure-report"
 artifact = ArtifactManager()

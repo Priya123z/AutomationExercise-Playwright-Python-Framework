@@ -1,38 +1,37 @@
-from __future__ import annotations
+"""Read test data out of JSON, optionally as records rather than dicts.
 
-from pathlib import Path
-from typing import Any, TypeVar
+There was a reader-per-format layer behind this once, with an abstract base
+class and a factory, and the CSV and Excel branches were never exercised: there
+is not a single .csv or .xlsx in the repository. Data lives in JSON, so this
+reads JSON.
+"""
+import json
 
-from utils.factories.reader_factory import ReaderFactory
 
-T = TypeVar("T")
+def load(filepath, model=None):
+    with open(filepath, encoding="utf-8") as file:
+        data = json.load(file)
 
-
-class TestData:
-
-    @staticmethod
-    def load(
-        filepath: Path,
-        model: type[T] | None = None,
-        filters: dict | None = None,
-        **kwargs: Any,
-    ) -> list[T] | list[dict] | list[dict]:
-
-        reader = ReaderFactory.get_reader(filepath)
-        data = reader.read(filepath, **kwargs)
-
-        if filters:
-            data = [
-                row
-                for row in data
-                if all(row.get(key) == value for key, value in filters.items())
-            ]
-
-        if model:
-
-            if isinstance(data, list):
-                return [model(**row) for row in data]
-
-            return model(**data)
-
+    if model is None:
         return data
+
+    # A file holds either one record or a list of them, and both shapes are in
+    # use: login.json is one, payment.json is a list.
+    if isinstance(data, list):
+        return [model(**row) for row in data]
+    return model(**data)
+
+
+def append(filepath, record):
+    """Append a record to a JSON list, creating the file if it is not there."""
+    from dataclasses import asdict
+
+    try:
+        with open(filepath, encoding="utf-8") as file:
+            existing = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        existing = []
+
+    existing.append(asdict(record))
+    with open(filepath, "w", encoding="utf-8") as file:
+        json.dump(existing, file, indent=4)

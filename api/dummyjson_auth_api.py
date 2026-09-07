@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.DummyJsonAPIModels.login_request import LoginRequest
+from models.dummyjson import LoginRequest
 from utils.logger import logger
 
 

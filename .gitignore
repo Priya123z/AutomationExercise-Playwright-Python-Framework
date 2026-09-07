@@ -22,9 +22,6 @@ artifacts/
 .idea/
 .vscode/
 
-# Authentication state
-utils/auth/
-
 # Failure screenshots, superseded by artifacts/<run-id>/screenshots/
 screenshots/
 
