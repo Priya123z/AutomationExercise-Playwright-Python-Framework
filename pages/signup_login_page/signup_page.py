@@ -102,5 +102,3 @@ class SignupPage(BasePage):
 
     def is_loaded(self):
         self.wait_for_visibility(self._account_heading,"Signup section loaded")
-
-

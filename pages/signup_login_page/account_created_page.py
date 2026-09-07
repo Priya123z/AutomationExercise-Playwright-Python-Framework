@@ -19,4 +19,3 @@ class AccountCreatedPage(BasePage):
         home.is_loaded()
 
         return home
-

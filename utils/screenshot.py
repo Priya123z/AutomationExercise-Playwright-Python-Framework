@@ -12,6 +12,3 @@ class Screenshot:
         path=artifact.screenshots_dir/f"{safe_name}.png"
 
         page.screenshot(path=path)
-
-
-

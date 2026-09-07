@@ -22,4 +22,3 @@ class HomePage(BasePage):
 
     def user_logged_in(self):
         return self.is_visible(self._logged_user, "Logged in")
-

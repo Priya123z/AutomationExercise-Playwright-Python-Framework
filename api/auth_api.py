@@ -41,7 +41,6 @@ class AuthAPI:
         return response,body
 
 
-
     def verify_login(self, user):
 
         payload = {
@@ -73,7 +72,6 @@ class AuthAPI:
                                           form=payload)
 
         body = response.json()
-
 
 
         logger.info(f"Delete account request sent for {user.email}")

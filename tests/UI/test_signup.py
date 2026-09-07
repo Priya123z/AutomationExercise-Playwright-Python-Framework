@@ -42,7 +42,3 @@ def test_signup(page):
         assert home.user_logged_in()
     with allure.step("Logging out the user"):
         home.navbar.logout()
-
-
-
-

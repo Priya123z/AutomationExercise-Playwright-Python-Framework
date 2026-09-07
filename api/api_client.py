@@ -90,4 +90,3 @@ class APIClient:
 
     def delete(self, endpoint, data=None, form=None, headers=None):
         return self._send_request("DELETE", endpoint, data=data, form=form, headers=headers)
-

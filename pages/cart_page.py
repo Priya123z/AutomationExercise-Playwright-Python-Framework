@@ -65,7 +65,6 @@ class CartPage(BasePage):
         return products
 
 
-
     def proceed_to_checkout(self):
         from pages.checkout_page import CheckoutPage
 

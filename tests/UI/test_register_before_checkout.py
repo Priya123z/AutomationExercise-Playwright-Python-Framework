@@ -37,4 +37,3 @@ def test_register_before_checkout(page,payment_details):
     home  = confirmation.continue_shopping()
 
     assert home.user_logged_in()
-

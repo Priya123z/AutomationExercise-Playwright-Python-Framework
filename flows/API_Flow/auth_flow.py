@@ -1,13 +1,12 @@
 import allure
 
-from api.auth_api import AuthAPI
 from utils.factories.user_factory import UserFactory
 from utils.schema_validator import SchemaValidator
 
 
 class AuthFlow:
 
-    def __init__(self, auth_api: AuthAPI):
+    def __init__(self, auth_api):
         self.auth_api = auth_api
 
 
@@ -16,7 +15,6 @@ class AuthFlow:
     @allure.title("Register a new user successfully")
     @allure.description("Verify that a new user can be registered using valid details.")
     @allure.severity(allure.severity_level.CRITICAL)
-
     def register_and_verify_user(self):
 
         with allure.step("Create test user"):
@@ -38,8 +36,9 @@ class AuthFlow:
 
         with allure.step("Validating JSON Schema"):
             # 3. Contract Validation
-            SchemaValidator.validate_response(response,"auth/create_user_schema.json")
-            return user
+            SchemaValidator.validate_response(response, "auth/create_user_schema.json")
+
+        return user
 
 
     @allure.feature("Authentication")
@@ -66,9 +65,10 @@ class AuthFlow:
             assert login_body["message"] == "User exists!"
 
         with allure.step("Validating JSON Schema"):
-            #3. Contract validation
-            SchemaValidator.validate_response(response,"auth/login_user_schema.json")
-            return user
+            # 3. Contract validation
+            SchemaValidator.validate_response(response, "auth/login_user_schema.json")
+
+        return user
 
     @allure.feature("Authentication")
     @allure.story("Delete Account")
@@ -92,9 +92,5 @@ class AuthFlow:
             assert delete_body["message"] == "Account deleted!"
 
         with allure.step("Validate JSON schema"):
-            SchemaValidator.validate_response(response,"auth/delete_user_schema.json")
+            SchemaValidator.validate_response(response, "auth/delete_user_schema.json")
         return user, delete_body
-
-
-
-

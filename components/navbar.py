@@ -41,5 +41,3 @@ class Navbar(BasePage):
         logout_page = SignUpLoginPage(self.page)
         logout_page.is_loaded()
         return logout_page
-
-

@@ -1,10 +1,8 @@
-from api.auth_api import AuthAPI
-from flows.API_Flow.auth_flow import AuthFlow
 from utils.factories.user_factory import UserFactory
 
 
 class AuthNegativeFlow:
-    def __init__(self, auth_api: AuthAPI, auth_flow: AuthFlow):
+    def __init__(self, auth_api, auth_flow):
         self.auth_api = auth_api
         self.auth_flow = auth_flow
 
@@ -66,7 +64,6 @@ class AuthNegativeFlow:
         assert login_body["message"] == "Bad request, email or password parameter is missing in POST request."
 
 
-
     def verify_delete_with_a_deleted_account(self):
 
         user = self.auth_flow.register_and_verify_user()
@@ -84,17 +81,3 @@ class AuthNegativeFlow:
         assert delete_body["responseCode"] == 404
         assert delete_body["message"] == "Account not found!"
         return user,delete_body
-
-
-
-
-
-
-
-
-
-
-
-
-
-

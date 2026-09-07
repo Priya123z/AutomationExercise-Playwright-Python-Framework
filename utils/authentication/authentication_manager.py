@@ -26,7 +26,6 @@ class AuthManager:
         self._initialized = True
 
 
-
     def _create_auth_directory(self):
         self.auth_directory.mkdir(
             parents=True,

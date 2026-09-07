@@ -26,7 +26,6 @@ class PaymentPage(BasePage):
         self.fill(self._year, payment.expiry_year,"Expiry Year")
 
 
-
     def confirm_order(self):
         self.click(self._confirm, "Confirm Order")
 
@@ -34,4 +33,3 @@ class PaymentPage(BasePage):
         confirmation.is_loaded()
 
         return confirmation
-

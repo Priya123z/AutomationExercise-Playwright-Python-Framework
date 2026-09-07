@@ -1,17 +1,15 @@
 from dataclasses import asdict
 
-from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.dummyjson import LoginRequest
 from utils.logger import logger
 
 
 class DummyJsonAuthAPI:
 
-    def __init__(self, api_client: APIClient):
+    def __init__(self, api_client):
         self.api_client = api_client
 
-    def login(self, request: LoginRequest):
+    def login(self, request):
 
         logger.info(f"Logging in user: {request.username}")
 

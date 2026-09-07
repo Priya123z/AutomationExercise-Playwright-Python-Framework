@@ -56,5 +56,3 @@ class SignUpLoginPage(BasePage):
         signup_page = SignupPage(self.page)
         signup_page.is_loaded()
         return signup_page
-
-

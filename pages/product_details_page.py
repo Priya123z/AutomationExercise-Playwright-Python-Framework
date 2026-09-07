@@ -45,5 +45,3 @@ class ProductDetailsPage(BasePage):
 
     def set_quantity(self,quantity):
         self.fill(self._quantity,str(quantity),"Product Quantity")
-
-

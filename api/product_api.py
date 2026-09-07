@@ -1,15 +1,12 @@
 from dataclasses import asdict
 
-
-from api.api_client import APIClient
 from api.endpoints import Endpoints
-from models.dummyjson import CreateProductRequest, UpdateProductRequest
 from utils.logger import logger
 
 
 class ProductAPI:
 
-    def __init__(self, api_client: APIClient):
+    def __init__(self, api_client):
         self.api_client = api_client
 
     def get_all_products(self):
@@ -28,7 +25,7 @@ class ProductAPI:
 
         return self.api_client.get(endpoint)
 
-    def create_product(self, request: CreateProductRequest):
+    def create_product(self, request):
 
         logger.info(f"Creating product: {request.title}")
 
@@ -37,7 +34,7 @@ class ProductAPI:
             data=asdict(request),
         )
 
-    def update_product(self, product_id, request:UpdateProductRequest):
+    def update_product(self, product_id, request):
 
         logger.info(f"Updating Product: {product_id}")
 

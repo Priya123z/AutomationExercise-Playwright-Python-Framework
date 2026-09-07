@@ -11,4 +11,3 @@ class LoginFlow(BasePage):
         home = HomePage(self.page)
         signup_login = home.navbar.open_signup_login()
         return signup_login.login(username, password)
-

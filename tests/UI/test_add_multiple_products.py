@@ -18,7 +18,3 @@ def test_add_multiple_products(page):
 
     assert cart.has_product("Blue Top")
     assert cart.has_product("Men Tshirt")
-
-
-
-

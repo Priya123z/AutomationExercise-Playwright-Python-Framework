@@ -24,8 +24,6 @@ from utils import test_data
 from flows.API_Flow.product_flow import ProductFlow
 
 
-
-
 # -------------------------
 # Browser Fixtures
 # -------------------------
@@ -128,8 +126,6 @@ def authenticated_context(browser, request, standing_account):
     context.tracing.stop(path=artifact.traces_dir / f"{test_name}.zip")
 
     context.close()
-
-
 
 
 @pytest.fixture
@@ -352,7 +348,6 @@ def automation_exercise_api_client(playwright):
     request_context.dispose()
 
 
-
 #---------------------------
 # Dummy JSON API fixture
 #---------------------------
@@ -490,4 +485,3 @@ def route_ads(browser_context):
     # the browser, so only requests we actually intend to block cross the boundary.
     for domain in AD_DOMAINS:
         browser_context.route(f"**/*{domain}/**", block_ads)
-

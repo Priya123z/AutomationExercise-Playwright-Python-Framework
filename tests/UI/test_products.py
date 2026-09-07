@@ -11,5 +11,3 @@ def test_products_page(page):
     products = home.navbar.open_product()
 
     products.is_loaded()
-
-
